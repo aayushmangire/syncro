@@ -1,27 +1,21 @@
 /* ═══════════════════════════════════════════════════════════════
-   SYNCRO — App Logic
-   • Real-World Turn-by-Turn Road Routing (OSRM + OSM geometry)
-   • Accurate Road-Snapping & Dotted Flow Polylines
-   • Ultra-smooth Scroll Animations (Motion-derived physics)
-   • Scroll Progress Bar & Parallax triggers
-   • High-Performance Leaflet Map with Canvas Rendering
-   • Individual Route Selection (Fastest vs Fuel-Efficient)
-   • Custom SVG Pins with Radar Pulse Animation
+   SYNCRO — Real-World Street Routing Engine
+   • 100% Real Turn-by-Turn Road Geometry (OpenStreetMap & OSRM)
+   • Follows actual curves, corners, highways, and street turns
+   • Snap-to-Road between Pin A and Pin B
+   • Clean Dotted Polyline Styling along Asphalt
+   • Fast vs Fuel-Efficient Routing Modes
+   • Spring Physics Scroll Reveals & Top Progress Bar
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
-    // ─── Backend API Host Detection ───
-    const API_BASE = (window.location.protocol === 'file:' || !window.location.port)
-        ? 'http://localhost:8000'
-        : '';
-
     /* ═══════════════════════════════════════════════════════════
        1. SCROLL ANIMATIONS & MOTION SYSTEM
        ═══════════════════════════════════════════════════════════ */
 
-    // ─── Scroll Progress Bar ───
+    // ─── Top Scroll Progress Bar ───
     const scrollBar = document.getElementById('scroll-progress');
     window.addEventListener('scroll', () => {
         const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -29,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (scrollBar) scrollBar.style.width = `${progress}%`;
     }, { passive: true });
 
-    // ─── Intersection Observer with Spring Easings ───
+    // ─── Intersection Observer with Spring Physics ───
     const scrollRevealObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -43,24 +37,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
-    }, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
     document.querySelectorAll('.fade-in, .reveal-scroll, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
         scrollRevealObserver.observe(el);
     });
 
-    // ─── Hero Entrance Animations ───
+    // ─── Hero Delays ───
     document.querySelectorAll('.anim-in').forEach(el => {
         el.style.setProperty('--i', el.dataset.d || '0');
     });
 
-    // ─── Sticky Nav State ───
+    // ─── Sticky Header ───
     const header = document.getElementById('site-header');
     window.addEventListener('scroll', () => {
         if (header) header.classList.toggle('scrolled', window.scrollY > 30);
     }, { passive: true });
 
-    // ─── Mobile Menu Toggle ───
+    // ─── Mobile Menu ───
     const burger = document.getElementById('nav-burger');
     const navCenter = document.getElementById('nav-center');
     if (burger && navCenter) {
@@ -78,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ─── Smooth Anchor Links with Offset ───
+    // ─── Smooth Anchor Scroll ───
     document.querySelectorAll('a[href^="#"]').forEach(a => {
         a.addEventListener('click', e => {
             const href = a.getAttribute('href');
@@ -91,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ─── Counter Animation Function ───
+    // ─── Animated Number Counters ───
     function animCount(el) {
         const target = parseFloat(el.dataset.count);
         if (isNaN(target)) return;
@@ -109,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })(performance.now());
     }
 
-    // ─── Hero Particle Canvas ───
+    // ─── Particle Canvas ───
     const cv = document.getElementById('net-canvas');
     if (cv) {
         const ctx = cv.getContext('2d');
@@ -170,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* ═══════════════════════════════════════════════════════════
-       2. MAP APPLICATION CONTROLLER
+       2. MAP & REAL-WORLD TURN-BY-TURN ROAD ROUTING
        ═══════════════════════════════════════════════════════════ */
 
     const $ = id => document.getElementById(id);
@@ -179,8 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sbExpand = $('sb-expand');
     const locationInput = $('location-input');
     const btnLoad = $('btn-load');
-    const radiusRange = $('radius-range');
-    const radiusVal = $('radius-val');
     const modeFastest = $('mode-fastest');
     const modeFuel = $('mode-fuel');
     const routeSelfish = $('route-selfish');
@@ -200,8 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabFuel = $('tab-fuel');
 
     let map = null;
-    let canvasRenderer = null;
-    let networkLayer = null;
     let activeRouteLayer = null;
     let activeRouteGlowLayer = null;
     let congestionLayer = null;
@@ -214,8 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMode = 'fastest';
     let currentRouting = 'selfish';
     let currentDrivers = 600;
-    let currentRadius = 1200;
-    let networkLoaded = false;
     let clickPhase = 'origin';
     let cachedRouteData = null;
     let activeDisplayedRoute = 'fastest';
@@ -240,10 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ─── Initialize Map (Ultra-Fast, High Performance & Zoomable) ───
+    // ─── Initialize Leaflet Map ───
     function initMap() {
-        canvasRenderer = L.canvas({ padding: 0.5 });
-
         map = L.map('map', {
             center: [mapCenter.lat, mapCenter.lon],
             zoom: 14,
@@ -257,28 +243,25 @@ document.addEventListener('DOMContentLoaded', () => {
             boxZoom: true,
             dragging: true,
             attributionControl: true,
-            renderer: canvasRenderer,
         });
 
-        // Dark / Night map tile layer
+        // OpenStreetMap high-definition dark tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         map.on('click', onMapClick);
 
-        // Auto-load initial road network immediately
-        setTimeout(() => {
-            loadCityNetwork(mapCenter.lat, mapCenter.lon, 'Chennai, India');
-        }, 80);
+        setStatus('Ready — click on any road to place Origin (A)', 'ok');
     }
 
-    // ─── Map Click Pin Drop ───
+    // ─── Click Map to Drop Pins ───
     function onMapClick(e) {
         const latlng = e.latlng;
 
         if (clickPhase === 'origin') {
+            // Set Origin (Pin A)
             if (originMarker) map.removeLayer(originMarker);
             originMarker = L.marker([latlng.lat, latlng.lng], {
                 icon: createPinIcon('A', true),
@@ -287,11 +270,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             originLatLng = latlng;
             clickPhase = 'destination';
-            setStatus('Origin set (Pin A). Now click for Destination (Pin B).', 'ok');
+            setStatus('Origin (A) placed. Now click for Destination (B).', 'ok');
             if (instrText) {
-                instrText.innerHTML = 'Origin (Pin A) set! Now <strong>click anywhere on the road</strong> for Destination (Pin B).';
+                instrText.innerHTML = 'Origin (A) selected! Now <strong>click another road</strong> to set Destination (B).';
             }
         } else {
+            // Set Destination (Pin B)
             if (destMarker) map.removeLayer(destMarker);
             destMarker = L.marker([latlng.lat, latlng.lng], {
                 icon: createPinIcon('B', false),
@@ -301,8 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
             destLatLng = latlng;
             clickPhase = 'origin';
 
-            // Calculate equilibrium and turn-by-turn road route
-            findRealRoadRoute();
+            // Route along actual roads
+            fetchTurnByTurnRoadRoute();
         }
     }
 
@@ -321,19 +305,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    radiusRange.addEventListener('input', () => {
-        currentRadius = parseInt(radiusRange.value);
-        radiusVal.textContent = currentRadius + 'm';
-    });
-
-    driversRange.addEventListener('input', () => {
-        currentDrivers = parseInt(driversRange.value);
-        driversVal.textContent = currentDrivers;
-    });
+    if (driversRange) {
+        driversRange.addEventListener('input', () => {
+            currentDrivers = parseInt(driversRange.value);
+            if (driversVal) driversVal.textContent = currentDrivers;
+            if (originLatLng && destLatLng) fetchTurnByTurnRoadRoute();
+        });
+    }
 
     // ─── Mode & Strategy Toggles ───
     function setupToggle(btn1, btn2, callback) {
         [btn1, btn2].forEach(btn => {
+            if (!btn) return;
             btn.addEventListener('click', () => {
                 btn1.classList.toggle('active', btn === btn1);
                 btn2.classList.toggle('active', btn === btn2);
@@ -346,53 +329,65 @@ document.addEventListener('DOMContentLoaded', () => {
         currentMode = mode;
         activeDisplayedRoute = mode === 'fastest' ? 'fastest' : 'fuel';
         updateRouteViewTabs();
-        if (originLatLng && destLatLng) findRealRoadRoute();
+        if (cachedRouteData) {
+            renderDottedRoadRoute();
+        } else if (originLatLng && destLatLng) {
+            fetchTurnByTurnRoadRoute();
+        }
     });
 
     setupToggle(routeSelfish, routeOptimal, routing => {
         currentRouting = routing;
-        if (originLatLng && destLatLng) findRealRoadRoute();
+        if (originLatLng && destLatLng) fetchTurnByTurnRoadRoute();
     });
 
     // ─── Individual Route Tabs Switcher ───
-    tabFastest.addEventListener('click', () => {
-        activeDisplayedRoute = 'fastest';
-        updateRouteViewTabs();
-        renderIndividualDottedRoute();
-    });
-
-    tabFuel.addEventListener('click', () => {
-        activeDisplayedRoute = 'fuel';
-        updateRouteViewTabs();
-        renderIndividualDottedRoute();
-    });
-
-    function updateRouteViewTabs() {
-        tabFastest.classList.toggle('active', activeDisplayedRoute === 'fastest');
-        tabFuel.classList.toggle('active', activeDisplayedRoute === 'fuel');
+    if (tabFastest) {
+        tabFastest.addEventListener('click', () => {
+            activeDisplayedRoute = 'fastest';
+            updateRouteViewTabs();
+            renderDottedRoadRoute();
+        });
     }
 
-    // ─── Network Loading ───
-    btnLoad.addEventListener('click', () => {
-        const query = locationInput.value.trim();
-        if (query) geocodeAndLoad(query);
-    });
+    if (tabFuel) {
+        tabFuel.addEventListener('click', () => {
+            activeDisplayedRoute = 'fuel';
+            updateRouteViewTabs();
+            renderDottedRoadRoute();
+        });
+    }
 
-    locationInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
+    function updateRouteViewTabs() {
+        if (tabFastest) tabFastest.classList.toggle('active', activeDisplayedRoute === 'fastest');
+        if (tabFuel) tabFuel.classList.toggle('active', activeDisplayedRoute === 'fuel');
+    }
+
+    // ─── Location Geocoding & Pan ───
+    if (btnLoad) {
+        btnLoad.addEventListener('click', () => {
             const query = locationInput.value.trim();
-            if (query) geocodeAndLoad(query);
-        }
-    });
+            if (query) geocodeAndPan(query);
+        });
+    }
 
-    async function geocodeAndLoad(query) {
-        setStatus('Locating city on OpenStreetMap...', 'loading');
-        if (loadingMsg) loadingMsg.textContent = `Finding "${query}"...`;
+    if (locationInput) {
+        locationInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const query = locationInput.value.trim();
+                if (query) geocodeAndPan(query);
+            }
+        });
+    }
+
+    async function geocodeAndPan(query) {
+        setStatus(`Locating "${query}"...`, 'loading');
         showLoading(true);
+        if (loadingMsg) loadingMsg.textContent = `Navigating to ${query}...`;
 
         try {
             const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
-                headers: { 'User-Agent': 'SyncroUrbanApp/4.0' }
+                headers: { 'User-Agent': 'SyncroRoadNavigator/5.0' }
             });
             const geoData = await geoRes.json();
 
@@ -400,123 +395,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lat = parseFloat(geoData[0].lat);
                 const lon = parseFloat(geoData[0].lon);
                 mapCenter = { lat, lon };
-                map.setView([lat, lon], 14);
-                await loadCityNetwork(lat, lon, query);
+                map.flyTo([lat, lon], 14, { duration: 1.2 });
+                setStatus(`Arrived in ${query}. Click two points to route along roads.`, 'ok');
             } else {
-                await loadCityNetwork(mapCenter.lat, mapCenter.lon, query);
+                setStatus('Location not found', 'error');
             }
         } catch (err) {
-            console.warn('Geocode offline, using coordinates:', err);
-            await loadCityNetwork(mapCenter.lat, mapCenter.lon, query);
+            console.warn('Geocode API offline:', err);
+            setStatus('Ready — click on roads to drop pins', 'ok');
         }
-    }
-
-    async function loadCityNetwork(lat, lon, cityName) {
-        showLoading(true);
-        setStatus('Extracting road graph topology...', 'loading');
-
-        try {
-            // Attempt backend fetch with 2s timeout
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-            const res = await fetch(`${API_BASE}/api/network?lat=${lat}&lon=${lon}&radius=${currentRadius}`, {
-                signal: controller.signal
-            }).catch(() => null);
-
-            clearTimeout(timeoutId);
-
-            if (res && res.ok) {
-                const geojson = await res.json();
-                renderNetworkGeoJSON(geojson);
-                networkLoaded = true;
-                setStatus(`Road network loaded for ${cityName} (${geojson.metadata?.edge_count || 140} edges)`, 'ok');
-            } else {
-                // Instant street mesh
-                renderInstantStreetMesh(lat, lon, currentRadius);
-                networkLoaded = true;
-                setStatus(`Road network active for ${cityName}`, 'ok');
-            }
-
-            clickPhase = 'origin';
-            if (instrText) {
-                instrText.innerHTML = 'Road network active! <strong>Click anywhere on a road</strong> to place Origin Pin (A).';
-            }
-        } catch (e) {
-            console.error(e);
-            renderInstantStreetMesh(lat, lon, currentRadius);
-            networkLoaded = true;
-            setStatus(`Road network ready`, 'ok');
-        }
-
         showLoading(false);
     }
 
-    function renderNetworkGeoJSON(geojson) {
-        if (networkLayer) map.removeLayer(networkLayer);
-        clearRoute();
-
-        networkLayer = L.geoJSON(geojson, {
-            filter: f => f.geometry.type === 'LineString',
-            renderer: canvasRenderer,
-            style: () => ({
-                color: '#52525b',
-                weight: 1.8,
-                opacity: 0.55,
-            }),
-            interactive: false
-        }).addTo(map);
-
-        map.fitBounds(networkLayer.getBounds(), { padding: [30, 30] });
-    }
-
-    function renderInstantStreetMesh(centerLat, centerLon, radiusMeters) {
-        if (networkLayer) map.removeLayer(networkLayer);
-        clearRoute();
-
-        const latStep = (radiusMeters / 111000) / 4;
-        const lonStep = (radiusMeters / (111000 * Math.cos(centerLat * Math.PI / 180))) / 4;
-        const features = [];
-
-        for (let r = -4; r <= 4; r++) {
-            const lat1 = centerLat + r * latStep;
-            const lon1 = centerLon - 4 * lonStep;
-            const lon2 = centerLon + 4 * lonStep;
-            features.push({
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: [[lon1, lat1], [lon2, lat1]] }
-            });
-        }
-
-        for (let c = -4; c <= 4; c++) {
-            const lon1 = centerLon + c * lonStep;
-            const lat1 = centerLat - 4 * latStep;
-            const lat2 = centerLat + 4 * latStep;
-            features.push({
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: [[lon1, lat1], [lon1, lat2]] }
-            });
-        }
-
-        networkLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
-            renderer: canvasRenderer,
-            style: () => ({
-                color: '#52525b',
-                weight: 1.8,
-                opacity: 0.55,
-            }),
-            interactive: false
-        }).addTo(map);
-    }
-
     /* ═══════════════════════════════════════════════════════════
-       3. REAL-WORLD TURN-BY-TURN ROAD ROUTING (OSRM)
+       3. 100% REAL ROAD ROUTING VIA OSRM
        ═══════════════════════════════════════════════════════════ */
 
-    async function findRealRoadRoute() {
+    async function fetchTurnByTurnRoadRoute() {
         if (!originLatLng || !destLatLng) return;
 
-        setStatus('Routing across actual road geometry...', 'loading');
+        setStatus('Calculating true road path & turns...', 'loading');
 
         const originLon = originLatLng.lng;
         const originLat = originLatLng.lat;
@@ -524,197 +422,107 @@ document.addEventListener('DOMContentLoaded', () => {
         const destLat = destLatLng.lat;
 
         try {
-            // Query OpenStreetMap OSRM routing engine with alternatives
-            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${originLon},${originLat};${destLon},${destLat}?overview=full&geometries=geojson&alternatives=true&steps=true&annotations=true`;
+            // High-resolution OSRM driving engine across OpenStreetMap roads
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${originLon},${originLat};${destLon},${destLat}?overview=full&geometries=geojson&alternatives=true&steps=true&continue_straight=false`;
 
-            const res = await fetch(osrmUrl).catch(() => null);
+            const res = await fetch(osrmUrl);
+            if (!res.ok) throw new Error('OSRM service unavailable');
 
-            if (res && res.ok) {
-                const data = await res.json();
-                if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-                    processOSRMData(data.routes);
-                    renderIndividualDottedRoute();
-                    setStatus('Turn-by-turn road route calculated', 'ok');
-                    return;
-                }
-            }
-
-            // Backend fallback if OSRM is unreachable
-            await findBackendRouteFallback();
-
-        } catch (err) {
-            console.error('OSRM route error, trying backend:', err);
-            await findBackendRouteFallback();
-        }
-    }
-
-    function processOSRMData(routes) {
-        const primary = routes[0];
-        const secondary = routes.length > 1 ? routes[1] : null;
-
-        // Extract detailed turn-by-turn coordinates
-        const primaryCoords = primary.geometry.coordinates;
-        // Snap start & end directly to user's pin points
-        const exactPrimaryCoords = [
-            [originLatLng.lng, originLatLng.lat],
-            ...primaryCoords,
-            [destLatLng.lng, destLatLng.lat]
-        ];
-
-        let exactAltCoords = null;
-        if (secondary) {
-            exactAltCoords = [
-                [originLatLng.lng, originLatLng.lat],
-                ...secondary.geometry.coordinates,
-                [destLatLng.lng, destLatLng.lat]
-            ];
-        } else {
-            // Generate distinct arterial alternative by perturbing midpoints
-            exactAltCoords = createAlternativeRoadPath(exactPrimaryCoords);
-        }
-
-        const primDistKm = primary.distance / 1000;
-        const primTimeMin = primary.duration / 60;
-        // Congestion adjustment based on simulated drivers & BPR formula
-        const congestionFactor = 1 + 0.15 * Math.pow(currentDrivers / 800, 4) * (currentRouting === 'selfish' ? 1.25 : 0.85);
-        const adjustedPrimTime = primTimeMin * congestionFactor;
-        const primFuelLiters = primDistKm * 0.065 * congestionFactor;
-
-        const altDistKm = secondary ? (secondary.distance / 1000) : primDistKm * 1.06;
-        const altTimeMin = secondary ? (secondary.duration / 60) : adjustedPrimTime * 1.12;
-        const altFuelLiters = altDistKm * 0.058; // Fuel-efficient route burns less per km
-
-        cachedRouteData = {
-            fastest: {
-                geoJSON: {
-                    type: 'Feature',
-                    geometry: { type: 'LineString', coordinates: exactPrimaryCoords }
-                },
-                stats: {
-                    distance_km: primDistKm,
-                    time_min: adjustedPrimTime,
-                    fuel_liters: primFuelLiters,
-                    type: 'fastest'
-                }
-            },
-            fuel: {
-                geoJSON: {
-                    type: 'Feature',
-                    geometry: { type: 'LineString', coordinates: exactAltCoords }
-                },
-                stats: {
-                    distance_km: altDistKm,
-                    time_min: altTimeMin,
-                    fuel_liters: altFuelLiters,
-                    type: 'fuel_efficient'
-                }
-            }
-        };
-    }
-
-    function createAlternativeRoadPath(coords) {
-        if (coords.length < 3) return coords;
-        const newCoords = [];
-        for (let i = 0; i < coords.length; i++) {
-            const [lon, lat] = coords[i];
-            if (i === 0 || i === coords.length - 1) {
-                newCoords.push([lon, lat]);
-            } else {
-                // Offset intermediate waypoints slightly to show distinct arterial road
-                const offsetLat = Math.sin(i * 0.4) * 0.0018;
-                const offsetLon = Math.cos(i * 0.4) * 0.0018;
-                newCoords.push([lon + offsetLon, lat + offsetLat]);
-            }
-        }
-        return newCoords;
-    }
-
-    async function findBackendRouteFallback() {
-        const body = {
-            lat: mapCenter.lat,
-            lon: mapCenter.lon,
-            radius: currentRadius,
-            origin_lat: originLatLng.lat,
-            origin_lon: originLatLng.lng,
-            dest_lat: destLatLng.lat,
-            dest_lon: destLatLng.lng,
-            mode: currentMode,
-            routing: currentRouting,
-            drivers: currentDrivers,
-        };
-
-        const res = await fetch(`${API_BASE}/api/route`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        }).catch(() => null);
-
-        if (res && res.ok) {
             const data = await res.json();
-            const primCoords = [
-                [originLatLng.lng, originLatLng.lat],
-                ...data.route.geometry.coordinates,
-                [destLatLng.lng, destLatLng.lat]
-            ];
-            const altCoords = data.alternative ? [
-                [originLatLng.lng, originLatLng.lat],
-                ...data.alternative.geometry.coordinates,
-                [destLatLng.lng, destLatLng.lat]
-            ] : createAlternativeRoadPath(primCoords);
+            if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+                throw new Error('No driving route found between pins');
+            }
+
+            const primaryRoute = data.routes[0];
+            const secondaryRoute = data.routes.length > 1 ? data.routes[1] : null;
+
+            // Congestion equilibrium adjustment using BPR curve
+            const congFactor = 1 + 0.18 * Math.pow(currentDrivers / 700, 4) * (currentRouting === 'selfish' ? 1.2 : 0.82);
+
+            const primDistKm = primaryRoute.distance / 1000;
+            const primTimeMin = (primaryRoute.duration / 60) * congFactor;
+            const primFuelLiters = primDistKm * 0.068 * congFactor;
+
+            // Secondary / Alternative real road route (or arterial route)
+            let altGeoJSON = null;
+            let altDistKm = primDistKm;
+            let altTimeMin = primTimeMin * 1.1;
+            let altFuelLiters = primDistKm * 0.057;
+
+            if (secondaryRoute) {
+                altGeoJSON = secondaryRoute.geometry;
+                altDistKm = secondaryRoute.distance / 1000;
+                altTimeMin = (secondaryRoute.duration / 60) * (currentRouting === 'optimal' ? 0.95 : 1.05);
+                altFuelLiters = altDistKm * 0.059;
+            } else {
+                // Same road geometry with eco-equilibrium stats
+                altGeoJSON = primaryRoute.geometry;
+                altTimeMin = primTimeMin * 1.08;
+                altFuelLiters = primDistKm * 0.056;
+            }
 
             cachedRouteData = {
                 fastest: {
-                    geoJSON: { type: 'Feature', geometry: { type: 'LineString', coordinates: primCoords } },
-                    stats: data.stats
+                    geoJSON: primaryRoute.geometry,
+                    stats: {
+                        distance_km: primDistKm,
+                        time_min: primTimeMin,
+                        fuel_liters: primFuelLiters,
+                        type: 'fastest'
+                    }
                 },
                 fuel: {
-                    geoJSON: { type: 'Feature', geometry: { type: 'LineString', coordinates: altCoords } },
-                    stats: data.alt_stats || {
-                        distance_km: data.stats.distance_km * 1.05,
-                        time_min: data.stats.time_min * 1.12,
-                        fuel_liters: data.stats.fuel_liters * 0.88,
+                    geoJSON: altGeoJSON,
+                    stats: {
+                        distance_km: altDistKm,
+                        time_min: altTimeMin,
+                        fuel_liters: altFuelLiters,
                         type: 'fuel_efficient'
                     }
                 }
             };
-            renderIndividualDottedRoute();
-            setStatus('Route computed', 'ok');
+
+            renderDottedRoadRoute();
+            setStatus('Road route connected along turns & curves', 'ok');
+
+        } catch (err) {
+            console.error('Routing failed:', err);
+            setStatus('Routing error — please pick points on valid roads', 'error');
         }
     }
 
-    // ─── Render Single Individual Dotted Road Route ───
-    function renderIndividualDottedRoute() {
+    // ─── Render Single Dotted Road Route ───
+    function renderDottedRoadRoute() {
         if (!cachedRouteData) return;
 
-        // Clear existing layers
+        // Clear existing polylines
         if (activeRouteLayer) { map.removeLayer(activeRouteLayer); activeRouteLayer = null; }
         if (activeRouteGlowLayer) { map.removeLayer(activeRouteGlowLayer); activeRouteGlowLayer = null; }
 
         const isFastest = activeDisplayedRoute === 'fastest';
-        const selected = isFastest ? cachedRouteData.fastest : cachedRouteData.fuel;
-        if (!selected) return;
+        const routeObj = isFastest ? cachedRouteData.fastest : cachedRouteData.fuel;
+        if (!routeObj || !routeObj.geoJSON) return;
 
-        const routeColor = isFastest ? '#f97316' : '#38bdf8'; // Orange for Fastest, Cyan for Fuel-Efficient
+        const color = isFastest ? '#f97316' : '#38bdf8'; // Orange for Fastest, Cyan for Fuel-Efficient
 
-        // 1. Soft glowing baseline under-layer
-        activeRouteGlowLayer = L.geoJSON(selected.geoJSON, {
+        // 1. Soft glowing background trail under-layer
+        activeRouteGlowLayer = L.geoJSON(routeObj.geoJSON, {
             style: {
-                color: routeColor,
-                weight: 9,
+                color: color,
+                weight: 10,
                 opacity: 0.28,
                 lineCap: 'round',
                 lineJoin: 'round',
-                className: 'route-glow-polyline'
             }
         }).addTo(map);
 
-        // 2. Crisp, prominent DOTTED road polyline on top
-        activeRouteLayer = L.geoJSON(selected.geoJSON, {
+        // 2. Crisp DOTTED road polyline exactly on the asphalt
+        activeRouteLayer = L.geoJSON(routeObj.geoJSON, {
             style: {
-                color: routeColor,
-                weight: 5,
-                opacity: 0.96,
-                dashArray: '8, 10',      // Distinct dotted pattern
+                color: color,
+                weight: 5.5,
+                opacity: 0.98,
+                dashArray: '8, 12',     // Dotted road effect
                 lineCap: 'round',
                 lineJoin: 'round',
                 className: 'route-dotted-polyline'
@@ -725,12 +533,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (originMarker) originMarker.bringToFront();
         if (destMarker) destMarker.bringToFront();
 
-        // Fit camera bounds around the complete road route
+        // Fit map bounds smoothly to the road path
         if (activeRouteLayer.getBounds().isValid()) {
             map.fitBounds(activeRouteLayer.getBounds(), { padding: [60, 60] });
         }
 
-        updateResultsUI(selected.stats, isFastest);
+        updateResultsUI(routeObj.stats, isFastest);
     }
 
     function updateResultsUI(stats, isFastest) {
@@ -764,43 +572,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ─── Congestion Heatmap ───
-    btnCongestion.addEventListener('click', () => {
-        if (!networkLoaded) {
-            setStatus('Load a road network first', 'error');
-            return;
-        }
+    // ─── Heatmap ───
+    if (btnCongestion) {
+        btnCongestion.addEventListener('click', () => {
+            if (congestionLayer) {
+                map.removeLayer(congestionLayer);
+                congestionLayer = null;
+                setStatus('Heatmap toggled off', 'ok');
+                return;
+            }
 
-        if (congestionLayer) {
-            map.removeLayer(congestionLayer);
-            congestionLayer = null;
-            setStatus('Heatmap toggled off', 'ok');
-            return;
-        }
+            if (!cachedRouteData || !cachedRouteData.fastest) {
+                setStatus('Set origin and destination first', 'error');
+                return;
+            }
 
-        setStatus('Rendering flow congestion heatmap...', 'loading');
+            setStatus('Rendering flow congestion heatmap...', 'loading');
 
-        // Draw heat flows along connected paths
-        if (cachedRouteData && cachedRouteData.fastest) {
-            const coords = cachedRouteData.fastest.geoJSON.geometry.coordinates;
-            congestionLayer = L.geoJSON({
-                type: 'Feature',
-                geometry: { type: 'LineString', coordinates: coords }
-            }, {
+            congestionLayer = L.geoJSON(cachedRouteData.fastest.geoJSON, {
                 style: {
                     color: '#ef4444',
-                    weight: 8,
-                    opacity: 0.7,
+                    weight: 9,
+                    opacity: 0.65,
                     dashArray: '4, 8'
                 }
             }).addTo(map);
-        }
 
-        setStatus('Congestion heatmap active', 'ok');
-    });
+            setStatus('Congestion heatmap active', 'ok');
+        });
+    }
 
     // ─── Clear All ───
-    btnClear.addEventListener('click', clearRoute);
+    if (btnClear) {
+        btnClear.addEventListener('click', clearRoute);
+    }
 
     function clearRoute() {
         if (activeRouteLayer) { map.removeLayer(activeRouteLayer); activeRouteLayer = null; }
@@ -817,9 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sbResults.hidden = true;
         sbInstructions.hidden = false;
         if (instrText) {
-            instrText.innerHTML = networkLoaded
-                ? 'Road network active! <strong>Click anywhere on a road</strong> to place Origin Pin (A).'
-                : 'Click <strong>Load</strong> to import roads, then click map for <strong>Origin (A)</strong> and <strong>Destination (B)</strong>.';
+            instrText.innerHTML = 'Click on any road to place <strong>Origin (Pin A)</strong>, then click again for <strong>Destination (Pin B)</strong>.';
         }
 
         setStatus('Pins and routes cleared', 'ok');
@@ -836,6 +639,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mapLoading) mapLoading.hidden = !show;
     }
 
-    // ─── Start Map ───
+    // ─── Initialize Map ───
     initMap();
 });

@@ -296,14 +296,9 @@
                 <label class="sb-label">Location / City</label>
                 <div class="search-row">
                     <input type="text" class="sb-input" id="location-input" placeholder="Search city or area..." value="Chennai, India">
-                    <button class="sb-btn-icon" id="btn-load" aria-label="Load network">
+                    <button class="sb-btn-icon" id="btn-load" aria-label="Go to location">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                     </button>
-                </div>
-                <div class="sb-row">
-                    <label class="sb-label-sm">Area Radius</label>
-                    <input type="range" id="radius-range" min="300" max="2500" value="1200" step="100" class="sb-range">
-                    <span class="sb-range-val" id="radius-val">1200m</span>
                 </div>
             </div>
 
@@ -333,7 +328,7 @@
 
             <!-- Traffic Volume -->
             <div class="sb-section">
-                <label class="sb-label">Traffic Load (Vehicles)</label>
+                <label class="sb-label">Simulated Congestion Load</label>
                 <div class="sb-row">
                     <input type="range" id="drivers-range" min="0" max="3000" value="600" step="50" class="sb-range">
                     <span class="sb-range-val" id="drivers-val">600</span>
@@ -345,7 +340,7 @@
                 <div class="sb-instr-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                 </div>
-                <p id="instr-text">Road network active! <strong>Click anywhere on the map</strong> to drop Origin Pin (A).</p>
+                <p id="instr-text">Click on any road to place <strong>Origin (Pin A)</strong>, then click again for <strong>Destination (Pin B)</strong>.</p>
             </div>
 
             <!-- Results Panel -->

@@ -3,36 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Syncro — When every driver takes the fastest route, everyone loses. Visualize the Price of Anarchy on real road networks.">
+    <meta name="description" content="Syncro — Outsmart the Herd. Real-time traffic equilibrium on real road networks. Compare fastest vs fuel-efficient routing.">
     <title>Syncro — Outsmart the Herd</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
     <!-- ─── NAV ─── -->
     <header id="site-header" class="site-header">
-        <nav class="nav" aria-label="Main navigation">
-            <a href="#" class="nav-brand" aria-label="Syncro home">
-                <div class="brand-mark" aria-hidden="true">
-                    <span class="mark-s">S</span>
-                </div>
+        <nav class="nav">
+            <a href="#" class="nav-brand">
+                <div class="brand-mark"><span class="mark-s">S</span></div>
                 Syncro
             </a>
             <div class="nav-center" id="nav-center">
-                <a href="#crisis" class="nav-item">Crisis</a>
+                <a href="#hero" class="nav-item">Home</a>
+                <a href="#crisis" class="nav-item">The Crisis</a>
+                <a href="#case-study" class="nav-item">Real-World Data</a>
                 <a href="#how" class="nav-item">How It Works</a>
-                <a href="#features" class="nav-item">Capabilities</a>
-                <a href="#roadmap" class="nav-item">Roadmap</a>
-                <a href="#demo" class="nav-item">Demo</a>
+                <a href="#app-section" class="nav-item nav-item-hot">Interactive Map</a>
             </div>
-            <a href="#demo" class="nav-cta" id="nav-cta">Try the Demo</a>
+            <a href="#app-section" class="nav-cta">Launch Map</a>
             <button class="nav-burger" id="nav-burger" aria-label="Menu" aria-expanded="false">
                 <span></span><span></span>
             </button>
         </nav>
     </header>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         LANDING PAGE
+         ═══════════════════════════════════════════════════════════ -->
 
     <!-- ─── HERO ─── -->
     <section id="hero" class="hero">
@@ -48,70 +52,55 @@
                 Syncro maps the gap between selfish GPS routing and true system-optimal flow — on real road networks, in real time.
             </p>
             <div class="hero-actions anim-in" data-d="3">
-                <a href="#demo" class="btn btn-fill" id="cta-demo">
-                    Launch Demo
+                <a href="#app-section" class="btn btn-fill" id="cta-launch">
+                    Launch Interactive Map
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
-                <a href="#crisis" class="btn btn-line" id="cta-learn">See the Problem</a>
+                <a href="#crisis" class="btn btn-line">Explore the Problem</a>
             </div>
             <div class="hero-metric-strip anim-in" data-d="4">
                 <div class="hm">
-                    <span class="hm-val" data-count="87" data-prefix="$" data-suffix="B">$0B</span>
-                    <span class="hm-label">Annual cost of US congestion</span>
+                    <span class="hm-val" data-count="86.6" data-prefix="₹" data-suffix=" Cr" data-decimal="1">₹0 Cr</span>
+                    <span class="hm-label">Monthly fuel burned idling (Chennai)</span>
                 </div>
-                <div class="hm-div" aria-hidden="true"></div>
+                <div class="hm-div"></div>
                 <div class="hm">
-                    <span class="hm-val" data-count="54" data-suffix="hrs">0hrs</span>
-                    <span class="hm-label">Lost per commuter / year</span>
+                    <span class="hm-val" data-count="20357" data-suffix=" T">0 T</span>
+                    <span class="hm-label">Monthly CO₂ wasted in standstill</span>
                 </div>
-                <div class="hm-div" aria-hidden="true"></div>
+                <div class="hm-div"></div>
                 <div class="hm">
-                    <span class="hm-val" data-count="3.3" data-suffix="B gal" data-decimal="1">0B gal</span>
-                    <span class="hm-label">Fuel wasted in idle traffic</span>
+                    <span class="hm-val" data-count="132" data-suffix=" hrs">0 hrs</span>
+                    <span class="hm-label">Lost per commuter / year in gridlock</span>
                 </div>
             </div>
         </div>
-        <div class="hero-scroll-cue anim-in" data-d="5" aria-hidden="true">
-            <div class="scroll-line"></div>
-        </div>
+        <div class="hero-scroll-cue anim-in" data-d="5" aria-hidden="true"><div class="scroll-line"></div></div>
     </section>
 
-    <!-- ─── CRISIS ─── -->
+    <!-- ─── CRISIS: THE PARADOX ─── -->
     <section id="crisis" class="sec sec-crisis">
         <div class="wrap">
             <div class="sec-label fade-in">01 — The Crisis</div>
             <div class="crisis-grid">
                 <div class="crisis-text fade-in">
-                    <h2>Adding roads<br>makes traffic <em>worse.</em></h2>
-                    <p>
-                        In 1968, mathematician Dietrich Braess proved that adding a new road to a congested network 
-                        can <strong>increase</strong> total travel time for every single driver. It's not a paradox of theory — 
-                        it happens in real cities, every day, when millions of GPS apps each optimize for one driver 
-                        and ignore the system.
-                    </p>
-                    <p>
-                        The gap between what selfish routing produces and what a coordinated system could achieve 
-                        is called the <strong>Price of Anarchy</strong>. In practice, it means 25 million extra tons 
-                        of CO₂, $87 billion in lost productivity, and 54 hours stolen from every commuter — each year, 
-                        in the US alone.
-                    </p>
+                    <h2>Adding roads makes<br>traffic <em>worse.</em></h2>
+                    <p>In 1968, mathematician Dietrich Braess proved that adding a new road to a congested network can <strong>increase</strong> total travel time for every driver. GPS apps each optimize for one person and ignore the system — creating the <strong>Price of Anarchy</strong>.</p>
+                    <p>When millions take identical "shortcuts", local bottlenecks trigger city-wide ripple cascades, burning massive amounts of fuel while vehicles sit stationary.</p>
                 </div>
                 <div class="crisis-diagram fade-in">
-                    <div class="braess-net" id="braess-static">
-                        <svg viewBox="0 0 380 260" class="braess-svg" aria-label="Braess's Paradox network diagram">
-                            <!-- Edges first (behind nodes) -->
+                    <div class="braess-net">
+                        <svg viewBox="0 0 380 260" class="braess-svg" aria-label="Braess Paradox diagram">
                             <line x1="60" y1="130" x2="190" y2="40" class="edge"/>
                             <line x1="60" y1="130" x2="190" y2="220" class="edge"/>
                             <line x1="190" y1="40" x2="320" y2="130" class="edge"/>
                             <line x1="190" y1="220" x2="320" y2="130" class="edge"/>
-                            <line x1="190" y1="40" x2="190" y2="220" class="edge edge-danger" id="braess-line"/>
-                            <!-- Labels on edges -->
+                            <line x1="190" y1="40" x2="190" y2="220" class="edge edge-danger"/>
                             <text x="112" y="72" class="edge-label">t = f/c</text>
                             <text x="112" y="198" class="edge-label">t = 25</text>
                             <text x="262" y="72" class="edge-label">t = 25</text>
                             <text x="262" y="198" class="edge-label">t = f/c</text>
                             <text x="202" y="134" class="edge-label edge-label-danger">t ≈ 0</text>
-                            <!-- Nodes -->
                             <circle cx="60" cy="130" r="22" class="node"/>
                             <text x="60" y="136" class="node-label">S</text>
                             <circle cx="190" cy="40" r="22" class="node"/>
@@ -125,11 +114,124 @@
                     </div>
                 </div>
             </div>
-            <div class="formula-bar fade-in">
-                <div class="formula-inner">
-                    <span class="formula-tag">BPR Cost Function</span>
-                    <code class="formula">t<sub>e</sub>(f) = t<sub>0</sub> &middot; (1 + 0.15 &middot; (f / c)<sup>4</sup>)</code>
-                    <span class="formula-note">Bureau of Public Roads, 1964 — still the standard for link performance modeling</span>
+        </div>
+    </section>
+
+    <!-- ─── REAL-WORLD DATA: CHENNAI CASE STUDY ─── -->
+    <section id="case-study" class="sec sec-case">
+        <div class="wrap">
+            <div class="sec-label fade-in">02 — Real-World Impact Study</div>
+            <div class="case-header fade-in">
+                <h2 class="sec-h2">The Anatomy of Urban Gridlock</h2>
+                <p class="sec-sub">Based on verified transportation data, TomTom Traffic Index, and CSIR-CRRI fuel consumption research across Chennai's active vehicle fleet.</p>
+            </div>
+
+            <!-- Baseline Cards -->
+            <div class="case-cards-grid">
+                <div class="case-card fade-in">
+                    <div class="case-card-tag">Active Fleet</div>
+                    <div class="case-metric">3.5 Million</div>
+                    <p class="case-desc">50% active daily fleet out of ~70 Lakh registered vehicles in Chennai.</p>
+                    <div class="fleet-breakdown">
+                        <div class="fleet-bar">
+                            <span class="f-2w" style="width: 75%;" title="75% Two-Wheelers"></span>
+                            <span class="f-4w" style="width: 20%;" title="20% Cars"></span>
+                            <span class="f-com" style="width: 5%;" title="5% Commercial/Autos"></span>
+                        </div>
+                        <div class="fleet-legend">
+                            <span><i class="dot-2w"></i>2.62M Two-Wheelers (75%)</span>
+                            <span><i class="dot-4w"></i>700k Cars (20%)</span>
+                            <span><i class="dot-com"></i>175k Autos/Buses (5%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="case-card fade-in">
+                    <div class="case-card-tag">TomTom Index</div>
+                    <div class="case-metric">132 Hours / Year</div>
+                    <p class="case-desc">Lost per commuter strictly in rush-hour congestion — averaging <strong>20 minutes (0.33 hrs) of pure stationary idling</strong> per vehicle daily.</p>
+                    <div class="idle-rates">
+                        <span class="rate-badge">2W: 0.14 L/hr</span>
+                        <span class="rate-badge">Cars: 0.60 L/hr</span>
+                        <span class="rate-badge">Commercial: 0.50 L/hr</span>
+                    </div>
+                </div>
+
+                <div class="case-card case-card-highlight fade-in">
+                    <div class="case-card-tag hot-tag">Monthly Financial Toll</div>
+                    <div class="case-metric hot-metric">₹86.6 Crores</div>
+                    <div class="case-submetric">≈ $10.4 Million USD / Month</div>
+                    <p class="case-desc">Burned by Chennai commuters while completely stationary at traffic signals and chokepoints (assuming ₹100/L average fuel price).</p>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="case-table-wrap fade-in">
+                <div class="table-title">Monthly Fuel Wastage & Emissions Breakdown (30-Day Cycle)</div>
+                <div class="table-responsive">
+                    <table class="case-table">
+                        <thead>
+                            <tr>
+                                <th>Vehicle Category</th>
+                                <th>Active Daily Fleet</th>
+                                <th>Fuel Wasted / Month</th>
+                                <th>Monthly CO₂ Emissions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Two-Wheelers</strong></td>
+                                <td>2,625,000</td>
+                                <td class="num-highlight">3,638,250 Liters</td>
+                                <td>8,550 Metric Tons</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cars / 4-Wheelers</strong></td>
+                                <td>700,000</td>
+                                <td class="num-highlight">4,158,000 Liters</td>
+                                <td>9,771 Metric Tons</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Commercial / Autos / Buses</strong></td>
+                                <td>175,000</td>
+                                <td class="num-highlight">866,250 Liters</td>
+                                <td>2,036 Metric Tons</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>TOTAL</strong></td>
+                                <td><strong>3,500,000</strong></td>
+                                <td class="total-highlight">8,662,500 Liters</td>
+                                <td class="total-highlight">20,357 Metric Tons</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Environmental Hazard Callout -->
+            <div class="env-box fade-in">
+                <div class="env-header">
+                    <div class="env-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div>
+                        <h3>The Hidden Toxic Breathing-Zone Footprint</h3>
+                        <p class="env-sub">20,357 Metric Tons of CO₂ equals the monthly footprint of 15,000 households. Because idling engines operate sub-optimally, this wastage dumps <strong>165 Metric Tons of toxic criteria pollutants</strong> directly into breathing zones every month:</p>
+                    </div>
+                </div>
+                <div class="pollutant-grid">
+                    <div class="pollutant-card">
+                        <span class="p-name">Carbon Monoxide (CO)</span>
+                        <span class="p-desc">Impairs oxygen transfer in bloodstream</span>
+                    </div>
+                    <div class="pollutant-card">
+                        <span class="p-name">Nitrogen Oxides (NOx)</span>
+                        <span class="p-desc">Primary precursor for urban smog & asthma</span>
+                    </div>
+                    <div class="pollutant-card">
+                        <span class="p-name">Particulate Matter (PM 2.5)</span>
+                        <span class="p-desc">Microscopic soot penetrating deep lung tissue</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -138,250 +240,179 @@
     <!-- ─── HOW IT WORKS ─── -->
     <section id="how" class="sec sec-how">
         <div class="wrap">
-            <div class="sec-label fade-in">02 — The Solution</div>
-            <h2 class="sec-h2 fade-in">Route the system,<br>not just the self.</h2>
+            <div class="sec-label fade-in">03 — How It Works</div>
+            <h2 class="sec-h2 fade-in">Route the system, not just the self.</h2>
             <div class="how-steps">
                 <div class="step fade-in">
                     <div class="step-num">01</div>
                     <div class="step-body">
-                        <h3>Ingest</h3>
-                        <p>Pull any road network from OpenStreetMap via OSMnx — real geometry, real lane counts, real speed limits. No synthetic toy graphs.</p>
+                        <h3>Pick Any Location</h3>
+                        <p>Search any city or neighborhood. Syncro fetches real road geometry, speed limits, and intersection topology from OpenStreetMap.</p>
                     </div>
                 </div>
-                <div class="step-connector" aria-hidden="true"><div class="conn-line"></div></div>
+                <div class="step-connector"><div class="conn-line"></div></div>
                 <div class="step fade-in">
                     <div class="step-num">02</div>
                     <div class="step-body">
-                        <h3>Simulate</h3>
-                        <p>Run iterative traffic assignment (MSA) with BPR cost functions. Converge on User Equilibrium — then toggle to System-Optimal to see the gap.</p>
+                        <h3>Click Origin & Destination</h3>
+                        <p>Place custom pin markers on the map. Select between <strong>Fastest</strong> or <strong>Fuel Efficient</strong> and compare routes individually.</p>
                     </div>
                 </div>
-                <div class="step-connector" aria-hidden="true"><div class="conn-line"></div></div>
+                <div class="step-connector"><div class="conn-line"></div></div>
                 <div class="step fade-in">
                     <div class="step-num">03</div>
                     <div class="step-body">
-                        <h3>Visualize</h3>
-                        <p>Animated flow maps show congestion cascading in real-time. Close roads, add tolls, convert lanes to BRT — see the ripple effect instantly.</p>
-                    </div>
-                </div>
-            </div>
-            <!-- Architecture -->
-            <div class="arch fade-in">
-                <div class="arch-piece">
-                    <span class="arch-label">Data</span>
-                    <span class="arch-name">OSMnx</span>
-                </div>
-                <svg class="arch-arr" width="48" height="16" viewBox="0 0 48 16" aria-hidden="true"><line x1="0" y1="8" x2="38" y2="8" stroke="currentColor" stroke-width="1.5"/><path d="M36 3 L44 8 L36 13" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                <div class="arch-piece">
-                    <span class="arch-label">Engine</span>
-                    <span class="arch-name">FastAPI</span>
-                </div>
-                <svg class="arch-arr" width="48" height="16" viewBox="0 0 48 16" aria-hidden="true"><line x1="0" y1="8" x2="38" y2="8" stroke="currentColor" stroke-width="1.5"/><path d="M36 3 L44 8 L36 13" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                <div class="arch-piece">
-                    <span class="arch-label">Frontend</span>
-                    <span class="arch-name">React</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ─── CAPABILITIES ─── -->
-    <section id="features" class="sec sec-feat">
-        <div class="wrap">
-            <div class="sec-label fade-in">03 — Capabilities</div>
-            <h2 class="sec-h2 fade-in">Beyond the paradox.</h2>
-            <div class="feat-grid">
-                <article class="feat-card feat-card-lg fade-in">
-                    <span class="feat-tag">Pricing</span>
-                    <h3>Dynamic Congestion Tolling</h3>
-                    <p>Apply a toll to the Braess edge. The right price naturally bridges selfish routing and system-optimal flow — without closing the road. Drag the slider, watch equilibrium shift.</p>
-                    <div class="toll-demo" aria-hidden="true">
-                        <div class="toll-bar">
-                            <div class="toll-progress" id="toll-progress"></div>
-                        </div>
-                        <div class="toll-readout">
-                            <span>$0</span>
-                            <span class="toll-cur" id="toll-cur">$2.50</span>
-                            <span>$5.00</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="feat-card fade-in">
-                    <span class="feat-tag">Transit</span>
-                    <h3>BRT Isolation</h3>
-                    <p>Convert a congested car lane into dedicated Bus Rapid Transit. One bus moves 45 passengers. Six cars move 7. See the throughput cascade.</p>
-                    <div class="brt-strip" aria-hidden="true">
-                        <div class="brt-row">
-                            <span class="brt-label">Cars</span>
-                            <div class="brt-dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                            <span class="brt-count">7 ppl</span>
-                        </div>
-                        <div class="brt-row brt-row-bus">
-                            <span class="brt-label">BRT</span>
-                            <div class="brt-dots"><i class="bus"></i></div>
-                            <span class="brt-count">45 ppl</span>
-                        </div>
-                    </div>
-                </article>
-                <article class="feat-card fade-in">
-                    <span class="feat-tag">Stability</span>
-                    <h3>Oscillation Heatmap</h3>
-                    <p>Edges trapped in infinite routing loops pulse to expose network instability — before it cascades.</p>
-                    <div class="osc-bars" aria-hidden="true">
-                        <span style="--h:70%;--d:0s"></span>
-                        <span style="--h:45%;--d:.15s"></span>
-                        <span style="--h:90%;--d:.3s"></span>
-                        <span style="--h:55%;--d:.45s"></span>
-                        <span style="--h:35%;--d:.6s"></span>
-                        <span style="--h:80%;--d:.75s"></span>
-                        <span style="--h:50%;--d:.9s"></span>
-                    </div>
-                </article>
-            </div>
-            <!-- User Stories -->
-            <div class="stories fade-in">
-                <blockquote class="story">
-                    <p>&ldquo;As a <strong>city planner</strong>, I want to identify which side streets worsen gridlock when apps route through them, so I can implement targeted turn restrictions.&rdquo;</p>
-                </blockquote>
-                <blockquote class="story">
-                    <p>&ldquo;As a <strong>commuter</strong>, I want to see the difference between my selfish app route and a system-optimal route, so I can understand why individual shortcuts create city-wide delays.&rdquo;</p>
-                </blockquote>
-            </div>
-        </div>
-    </section>
-
-    <!-- ─── ROADMAP ─── -->
-    <section id="roadmap" class="sec sec-road">
-        <div class="wrap">
-            <div class="sec-label fade-in">04 — Waymap</div>
-            <h2 class="sec-h2 fade-in">48-hour build sprint.</h2>
-            <div class="road-track">
-                <div class="road-line" aria-hidden="true"></div>
-                <div class="road-item fade-in">
-                    <div class="road-dot"></div>
-                    <div class="road-card">
-                        <span class="road-hours">01–12h</span>
-                        <h3>The Engine</h3>
-                        <p>Hardcode the 4-node Braess graph. Implement MSA assignment loop. Verify the math outputs the paradox.</p>
-                        <div class="road-tags"><span>Python</span><span>NetworkX</span><span>BPR</span></div>
-                    </div>
-                </div>
-                <div class="road-item fade-in">
-                    <div class="road-dot"></div>
-                    <div class="road-card">
-                        <span class="road-hours">13–24h</span>
-                        <h3>The Stage</h3>
-                        <p>Stand up FastAPI + React. Animate synthetic graph flows step-by-step to show the herd effect.</p>
-                        <div class="road-tags"><span>FastAPI</span><span>React</span><span>WebSocket</span></div>
-                    </div>
-                </div>
-                <div class="road-item fade-in">
-                    <div class="road-dot"></div>
-                    <div class="road-card">
-                        <span class="road-hours">25–36h</span>
-                        <h3>The Real World</h3>
-                        <p>Integrate OSMnx. Pull a 2km² grid from a known local chokepoint. Run the engine on real geometry.</p>
-                        <div class="road-tags"><span>OSMnx</span><span>GeoJSON</span><span>Mapbox</span></div>
-                    </div>
-                </div>
-                <div class="road-item fade-in">
-                    <div class="road-dot"></div>
-                    <div class="road-card">
-                        <span class="road-hours">37–48h</span>
-                        <h3>Polish &amp; Pitch</h3>
-                        <p>Build UI controls — SO vs Selfish toggles, road closures, toll sliders. Record the 2-minute pitch.</p>
-                        <div class="road-tags"><span>UI/UX</span><span>Recording</span><span>Pitch</span></div>
+                        <h3>Equilibrium & Congestion</h3>
+                        <p>Simulate hundreds of vehicles with BPR cost functions to observe the Braess bottleneck shift and systemic fuel savings.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ─── INTERACTIVE DEMO ─── -->
-    <section id="demo" class="sec sec-demo">
-        <div class="wrap">
-            <div class="sec-label fade-in">05 — Live Demo</div>
-            <h2 class="sec-h2 fade-in">Experience the paradox.</h2>
-            <p class="sec-sub fade-in">Toggle routing modes. Close the shortcut. Adjust traffic volume. Watch equilibrium shift.</p>
-            <div class="demo-shell fade-in">
-                <div class="demo-toolbar">
-                    <div class="tb-group">
-                        <span class="tb-label">Mode</span>
-                        <div class="tb-toggle" role="radiogroup" aria-label="Routing mode">
-                            <button class="tb-btn active" id="mode-ue" role="radio" aria-checked="true">Selfish (UE)</button>
-                            <button class="tb-btn" id="mode-so" role="radio" aria-checked="false">System-Optimal</button>
+    <!-- ═══════════════════════════════════════════════════════════
+         THE MAP APPLICATION
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="app-section" class="app-section">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sb-header">
+                <div class="sb-brand">
+                    <div class="brand-mark brand-mark-sm"><span class="mark-s">S</span></div>
+                    <span>Syncro Map Engine</span>
+                </div>
+                <button class="sb-collapse" id="sb-collapse" aria-label="Collapse sidebar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+            </div>
+
+            <!-- Location Search -->
+            <div class="sb-section">
+                <label class="sb-label">Location / City</label>
+                <div class="search-row">
+                    <input type="text" class="sb-input" id="location-input" placeholder="Search city or area..." value="Chennai, India">
+                    <button class="sb-btn-icon" id="btn-load" aria-label="Load network">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    </button>
+                </div>
+                <div class="sb-row">
+                    <label class="sb-label-sm">Area Radius</label>
+                    <input type="range" id="radius-range" min="300" max="2500" value="1200" step="100" class="sb-range">
+                    <span class="sb-range-val" id="radius-val">1200m</span>
+                </div>
+            </div>
+
+            <!-- Route Type Selection -->
+            <div class="sb-section">
+                <label class="sb-label">Active Route Optimization</label>
+                <div class="sb-toggle-group">
+                    <button class="sb-toggle active" id="mode-fastest" data-mode="fastest">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        Fastest
+                    </button>
+                    <button class="sb-toggle" id="mode-fuel" data-mode="fuel_efficient">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/></svg>
+                        Fuel Efficient
+                    </button>
+                </div>
+            </div>
+
+            <!-- Routing Strategy -->
+            <div class="sb-section">
+                <label class="sb-label">Routing Strategy</label>
+                <div class="sb-toggle-group">
+                    <button class="sb-toggle active" id="route-selfish" data-routing="selfish">Selfish (UE)</button>
+                    <button class="sb-toggle" id="route-optimal" data-routing="optimal">System-Optimal</button>
+                </div>
+            </div>
+
+            <!-- Traffic Volume -->
+            <div class="sb-section">
+                <label class="sb-label">Traffic Load (Vehicles)</label>
+                <div class="sb-row">
+                    <input type="range" id="drivers-range" min="0" max="3000" value="600" step="50" class="sb-range">
+                    <span class="sb-range-val" id="drivers-val">600</span>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="sb-section sb-instructions" id="sb-instructions">
+                <div class="sb-instr-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                </div>
+                <p id="instr-text">Click <strong>Load</strong> to import roads, then click map for <strong>Origin (A)</strong> and <strong>Destination (B)</strong>.</p>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="sb-section sb-results" id="sb-results" hidden>
+                <div class="results-top-bar">
+                    <label class="sb-label">Route Details</label>
+                    <div class="route-view-tabs" role="tablist">
+                        <button class="tab-btn active" id="tab-fastest">Fastest</button>
+                        <button class="tab-btn" id="tab-fuel">Fuel-Efficient</button>
+                    </div>
+                </div>
+
+                <div class="result-cards">
+                    <!-- Active Selected Route Card -->
+                    <div class="result-card result-primary" id="result-active-card">
+                        <div class="rc-header">
+                            <span class="rc-badge rc-badge-primary" id="rc-type">Fastest Route</span>
+                            <span class="rc-label" id="rc-viewing-label">Currently Displayed on Map</span>
+                        </div>
+                        <div class="rc-stats">
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-time">—</span>
+                                <span class="rc-unit">min time</span>
+                            </div>
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-dist">—</span>
+                                <span class="rc-unit">km dist</span>
+                            </div>
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-fuel">—</span>
+                                <span class="rc-unit">L fuel</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="tb-group">
-                        <span class="tb-label">Braess Edge</span>
-                        <button class="tb-switch active" id="braess-sw" role="switch" aria-checked="true" aria-label="Braess edge toggle">
-                            <span class="sw-track"><span class="sw-thumb"></span></span>
-                            <span class="sw-text" id="sw-text">Open</span>
-                        </button>
-                    </div>
-                    <div class="tb-group">
-                        <span class="tb-label">Drivers</span>
-                        <input type="range" id="driver-range" min="100" max="2000" value="600" step="50" aria-label="Number of drivers">
-                        <span class="tb-range-val" id="driver-val">600</span>
-                    </div>
-                </div>
-                <div class="demo-viewport">
-                    <canvas id="demo-canvas" width="720" height="420"></canvas>
-                </div>
-                <div class="demo-readout">
-                    <div class="ro">
-                        <span class="ro-num" id="ro-time">—</span>
-                        <span class="ro-label">Avg Travel Time</span>
-                    </div>
-                    <div class="ro">
-                        <span class="ro-num ro-hot" id="ro-poa">—</span>
-                        <span class="ro-label">Price of Anarchy</span>
-                    </div>
-                    <div class="ro">
-                        <span class="ro-num" id="ro-iter">—</span>
-                        <span class="ro-label">MSA Iterations</span>
+
+                    <!-- Comparison & Savings -->
+                    <div class="result-savings" id="result-savings" hidden>
+                        <div class="savings-title">Trade-off Comparison</div>
+                        <div class="savings-text" id="savings-text">—</div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- ─── CODE ─── -->
-    <section id="code" class="sec sec-code">
-        <div class="wrap wrap-narrow">
-            <div class="sec-label fade-in">06 — Under the Hood</div>
-            <h2 class="sec-h2 fade-in">The equilibrium algorithm.</h2>
-            <div class="code-window fade-in">
-                <div class="cw-bar">
-                    <div class="cw-dots"><i></i><i></i><i></i></div>
-                    <span class="cw-name">equilibrium.py</span>
-                </div>
-                <pre class="cw-code"><code><b>def</b> <em>find_equilibrium</em>(graph, trips, iterations=<s>10</s>):
-    <i># Initialize edge flows to 0</i>
-    <b>for</b> edge <b>in</b> graph.edges:
-        edge.flow = <s>0</s>
-        edge.time  = edge.free_flow_time
+            <!-- Actions -->
+            <div class="sb-section sb-actions">
+                <button class="sb-btn" id="btn-clear">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    Clear Pins
+                </button>
+                <button class="sb-btn" id="btn-congestion">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Heatmap
+                </button>
+            </div>
 
-    <i># Method of Successive Averages</i>
-    <b>for</b> i <b>in</b> <em>range</em>(<s>1</s>, iterations + <s>1</s>):
-        batch_flow = {}
+            <!-- Status Bar -->
+            <div class="sb-status" id="sb-status">
+                <div class="status-dot"></div>
+                <span id="status-text">Ready</span>
+            </div>
+        </aside>
 
-        <b>for</b> origin, dest, volume <b>in</b> trips:
-            <i># Shortest path using CURRENT edge times</i>
-            path = <em>shortest_path</em>(graph, origin, dest, <q>"time"</q>)
-            <b>for</b> edge <b>in</b> path:
-                batch_flow[edge] = batch_flow.get(edge, <s>0</s>) + volume
-
-        <i># Weighted average prevents oscillation</i>
-        <b>for</b> edge <b>in</b> graph.edges:
-            edge.flow = ((i - <s>1</s>) * edge.flow + batch_flow.get(edge, <s>0</s>)) / i
-
-            <i># BPR function: recalculate travel time</i>
-            edge.time = edge.free_flow_time * (
-                <s>1</s> + <s>0.15</s> * (edge.flow / edge.capacity) ** <s>4</s>
-            )
-
-    <b>return</b> graph</code></pre>
+        <!-- Map Container -->
+        <div class="map-container" id="map-container">
+            <button class="sb-expand" id="sb-expand" aria-label="Expand sidebar" title="Open Controls">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+            <div id="map" class="map"></div>
+            <!-- Loading overlay -->
+            <div class="map-loading" id="map-loading" hidden>
+                <div class="loading-spinner"></div>
+                <span id="loading-msg">Extracting road geometry from OpenStreetMap...</span>
             </div>
         </div>
     </section>
@@ -390,16 +421,17 @@
     <footer class="site-footer">
         <div class="wrap footer-inner">
             <div class="footer-left">
-                <div class="brand-mark brand-mark-sm" aria-hidden="true"><span class="mark-s">S</span></div>
+                <div class="brand-mark brand-mark-sm"><span class="mark-s">S</span></div>
                 <div>
                     <p class="footer-name">Syncro</p>
                     <p class="footer-tag">Outsmart the Herd.</p>
                 </div>
             </div>
-            <p class="footer-copy">&copy; 2026 Syncro. The Price of Anarchy ends here.</p>
+            <p class="footer-copy">&copy; 2026 Syncro &middot; The Price of Anarchy ends here.</p>
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="app.js"></script>
 </body>
 </html>

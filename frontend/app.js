@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    SYNCRO — App Logic
-   Landing page interactions + Leaflet map + API integration
+   Landing page animations + Leaflet map + Fast/Fuel Individual Routing
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── Scroll reveal ───
     const fadeObs = new IntersectionObserver(entries => {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); fadeObs.unobserve(e.target); } });
-    }, { threshold: .1, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: .08, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.fade-in').forEach(el => fadeObs.observe(el));
 
     // Hero anim delays
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── Animated counters ───
     const counterObs = new IntersectionObserver(entries => {
         entries.forEach(e => { if (e.isIntersecting) { animCount(e.target); counterObs.unobserve(e.target); } });
-    }, { threshold: .5 });
+    }, { threshold: .4 });
     document.querySelectorAll('.hm-val').forEach(el => counterObs.observe(el));
 
     function animCount(el) {
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         (function tick(now) {
             const t = Math.min((now - start) / dur, 1);
             const v = (1 - Math.pow(1 - t, 3)) * target;
-            el.textContent = prefix + (dec ? v.toFixed(dec) : Math.round(v)) + suffix;
+            el.textContent = prefix + (dec ? v.toFixed(dec) : Math.round(v).toLocaleString()) + suffix;
             if (t < 1) requestAnimationFrame(tick);
         })(performance.now());
     }
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function cvInit() {
             pts = [];
             const w = cv.offsetWidth, h = cv.offsetHeight;
-            for (let i = 0; i < 30; i++) pts.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25, r: Math.random() * 1.5 + .6 });
+            for (let i = 0; i < 32; i++) pts.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25, r: Math.random() * 1.5 + .6 });
         }
         function cvDraw() {
             const w = cv.offsetWidth, h = cv.offsetHeight;
@@ -104,10 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
        MAP APPLICATION
        ═══════════════════════════════════════════════════════════ */
 
-    // DOM refs
+    // DOM Elements
     const $ = id => document.getElementById(id);
     const sidebar = $('sidebar');
     const sbCollapse = $('sb-collapse');
+    const sbExpand = $('sb-expand');
     const locationInput = $('location-input');
     const btnLoad = $('btn-load');
     const radiusRange = $('radius-range');
@@ -121,95 +122,132 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnClear = $('btn-clear');
     const btnCongestion = $('btn-congestion');
     const mapLoading = $('map-loading');
+    const loadingMsg = $('loading-msg');
     const sbStatus = $('sb-status');
     const statusText = $('status-text');
     const sbInstructions = $('sb-instructions');
+    const instrText = $('instr-text');
     const sbResults = $('sb-results');
+    const tabFastest = $('tab-fastest');
+    const tabFuel = $('tab-fuel');
 
     // State
     let map = null;
+    let canvasRenderer = null;
     let networkLayer = null;
-    let routeLayer = null;
-    let altRouteLayer = null;
+    let activeRouteLayer = null;
     let congestionLayer = null;
     let originMarker = null;
     let destMarker = null;
     let originLatLng = null;
     let destLatLng = null;
-    let mapCenter = { lat: 12.9716, lon: 77.5946 };  // Default: Bangalore
-    let currentMode = 'fastest';
-    let currentRouting = 'selfish';
-    let currentDrivers = 500;
-    let currentRadius = 1000;
+    let mapCenter = { lat: 13.0827, lon: 80.2707 };  // Default: Chennai, India
+    let currentMode = 'fastest';                     // 'fastest' or 'fuel_efficient'
+    let currentRouting = 'selfish';                  // 'selfish' or 'optimal'
+    let currentDrivers = 600;
+    let currentRadius = 1200;
     let networkLoaded = false;
-    let clickPhase = 'origin';  // 'origin' or 'destination'
+    let clickPhase = 'origin';                       // 'origin' or 'destination'
+    let cachedRouteData = null;                      // Stores both fastest and fuel routes from API
+    let activeDisplayedRoute = 'fastest';            // Which single route is currently visible on map
 
-    // ─── Initialize map ───
+    // ─── Custom Pin Icons ───
+    function createPinIcon(label, isOrigin) {
+        const cls = isOrigin ? 'syncro-pin-origin' : 'syncro-pin-dest';
+        const html = `
+            <div class="syncro-pin ${cls}">
+                <div class="pin-head">
+                    <span class="pin-label">${label}</span>
+                </div>
+                <div class="pin-pulse"></div>
+            </div>
+        `;
+        return L.divIcon({
+            html: html,
+            className: 'custom-pin-marker',
+            iconSize: [32, 42],
+            iconAnchor: [16, 42],
+            popupAnchor: [0, -42],
+        });
+    }
+
+    // ─── Initialize map with smooth zoom and panning ───
     function initMap() {
+        // High-performance canvas renderer for fast vector lines without DOM lag
+        canvasRenderer = L.canvas({ padding: 0.5 });
+
         map = L.map('map', {
             center: [mapCenter.lat, mapCenter.lon],
-            zoom: 15,
+            zoom: 14,
             zoomControl: true,
+            scrollWheelZoom: true,
+            smoothWheelZoom: true,
+            doubleClickZoom: true,
+            touchZoom: true,
+            boxZoom: true,
+            dragging: true,
             attributionControl: true,
+            renderer: canvasRenderer,
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
-        // Click handler for origin/destination
+        // Click handler for responsive pin placement
         map.on('click', onMapClick);
     }
 
     function onMapClick(e) {
         if (!networkLoaded) {
-            setStatus('Load a network first', 'error');
+            setStatus('Please load a road network first', 'error');
             return;
         }
 
         const latlng = e.latlng;
 
         if (clickPhase === 'origin') {
-            // Set origin
+            // Set Origin (Pin A)
             if (originMarker) map.removeLayer(originMarker);
-            originMarker = L.circleMarker([latlng.lat, latlng.lng], {
-                radius: 10,
-                fillColor: '#22c55e',
-                fillOpacity: .9,
-                color: '#fff',
-                weight: 2,
-            }).addTo(map).bindPopup('Origin').openPopup();
+            originMarker = L.marker([latlng.lat, latlng.lng], {
+                icon: createPinIcon('A', true),
+                zIndexOffset: 1000
+            }).addTo(map);
 
             originLatLng = latlng;
             clickPhase = 'destination';
-            setStatus('Click to set destination', 'ok');
-            sbInstructions.querySelector('p').innerHTML = 'Now <strong>click again</strong> to set the destination (red).';
+            setStatus('Origin set. Now click destination (Pin B)', 'ok');
+            instrText.innerHTML = 'Origin (A) selected! <strong>Click again</strong> on the map to set Destination (B).';
 
         } else {
-            // Set destination
+            // Set Destination (Pin B)
             if (destMarker) map.removeLayer(destMarker);
-            destMarker = L.circleMarker([latlng.lat, latlng.lng], {
-                radius: 10,
-                fillColor: '#ef4444',
-                fillOpacity: .9,
-                color: '#fff',
-                weight: 2,
-            }).addTo(map).bindPopup('Destination').openPopup();
+            destMarker = L.marker([latlng.lat, latlng.lng], {
+                icon: createPinIcon('B', false),
+                zIndexOffset: 1000
+            }).addTo(map);
 
             destLatLng = latlng;
             clickPhase = 'origin';
 
-            // Auto-route
+            // Auto-calculate route immediately
             findRoute();
         }
     }
 
-    // ─── Sidebar collapse ───
+    // ─── Sidebar collapse/expand ───
     sbCollapse.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        setTimeout(() => { if (map) map.invalidateSize(); }, 400);
+        sidebar.classList.add('collapsed');
+        setTimeout(() => { if (map) map.invalidateSize(); }, 350);
     });
+
+    if (sbExpand) {
+        sbExpand.addEventListener('click', () => {
+            sidebar.classList.remove('collapsed');
+            setTimeout(() => { if (map) map.invalidateSize(); }, 350);
+        });
+    }
 
     // ─── Range updates ───
     radiusRange.addEventListener('input', () => {
@@ -231,10 +269,38 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    setupToggle(modeFastest, modeFuel, mode => { currentMode = mode; if (originLatLng && destLatLng) findRoute(); });
-    setupToggle(routeSelfish, routeOptimal, routing => { currentRouting = routing; if (originLatLng && destLatLng) findRoute(); });
 
-    // ─── Load Network ───
+    setupToggle(modeFastest, modeFuel, mode => {
+        currentMode = mode;
+        activeDisplayedRoute = mode === 'fastest' ? 'fastest' : 'fuel';
+        updateRouteViewTabs();
+        if (originLatLng && destLatLng) findRoute();
+    });
+
+    setupToggle(routeSelfish, routeOptimal, routing => {
+        currentRouting = routing;
+        if (originLatLng && destLatLng) findRoute();
+    });
+
+    // ─── Individual Route Tabs Switcher ───
+    tabFastest.addEventListener('click', () => {
+        activeDisplayedRoute = 'fastest';
+        updateRouteViewTabs();
+        renderIndividualRoute();
+    });
+
+    tabFuel.addEventListener('click', () => {
+        activeDisplayedRoute = 'fuel';
+        updateRouteViewTabs();
+        renderIndividualRoute();
+    });
+
+    function updateRouteViewTabs() {
+        tabFastest.classList.toggle('active', activeDisplayedRoute === 'fastest');
+        tabFuel.classList.toggle('active', activeDisplayedRoute === 'fuel');
+    }
+
+    // ─── Load Network from OpenStreetMap ───
     btnLoad.addEventListener('click', loadNetwork);
     locationInput.addEventListener('keydown', e => { if (e.key === 'Enter') loadNetwork(); });
 
@@ -242,13 +308,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = locationInput.value.trim();
         if (!query) return;
 
-        setStatus('Geocoding...', 'loading');
+        setStatus('Geocoding location...', 'loading');
+        loadingMsg.textContent = `Locating "${query}" on OpenStreetMap...`;
         showLoading(true);
 
         try {
             // Geocode using Nominatim
             const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
-                headers: { 'User-Agent': 'Syncro/1.0' }
+                headers: { 'User-Agent': 'SyncroApp/2.0' }
             });
             const geoData = await geoRes.json();
 
@@ -265,9 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Pan map
             map.setView([lat, lon], 15);
 
-            setStatus('Loading road network...', 'loading');
+            setStatus('Extracting network topology...', 'loading');
+            loadingMsg.textContent = `Extracting ${currentRadius}m road network via OSMnx...`;
 
-            // Load network from backend
+            // Load network from FastAPI backend
             const res = await fetch(`${API}/api/network?lat=${lat}&lon=${lon}&radius=${currentRadius}`);
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
@@ -279,8 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             networkLoaded = true;
             clickPhase = 'origin';
-            setStatus(`Network loaded: ${geojson.metadata.node_count} nodes, ${geojson.metadata.edge_count} edges`, 'ok');
-            sbInstructions.querySelector('p').innerHTML = 'Network loaded! <strong>Click the map</strong> to set origin (green).';
+            setStatus(`Loaded: ${geojson.metadata.node_count} nodes, ${geojson.metadata.edge_count} edges`, 'ok');
+            instrText.innerHTML = 'Road network ready! <strong>Click the map</strong> to set Origin Pin (A).';
 
         } catch (err) {
             console.error(err);
@@ -290,38 +358,31 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoading(false);
     }
 
+    // ─── High-performance Canvas Network Display ───
     function displayNetwork(geojson) {
         if (networkLayer) map.removeLayer(networkLayer);
         clearRoute();
 
+        // Use canvas renderer for zero DOM click lag
         networkLayer = L.geoJSON(geojson, {
             filter: f => f.geometry.type === 'LineString',
+            renderer: canvasRenderer,
             style: () => ({
                 color: '#3f3f46',
                 weight: 1.5,
-                opacity: .5,
+                opacity: 0.45,
             }),
-            onEachFeature: (feature, layer) => {
-                const p = feature.properties;
-                if (p.name) {
-                    layer.bindPopup(`
-                        <div style="font-family:Inter,sans-serif;font-size:13px;color:#1a1a1a;">
-                            <strong>${p.name}</strong><br>
-                            ${p.speed_kmh} km/h · ${p.distance_km} km · Cap: ${p.capacity}
-                        </div>
-                    `);
-                }
-            }
+            interactive: false  // Keeps map clicks instantaneous!
         }).addTo(map);
 
         map.fitBounds(networkLayer.getBounds(), { padding: [30, 30] });
     }
 
-    // ─── Find Route ───
+    // ─── Find Route (computes both, stores data) ───
     async function findRoute() {
         if (!originLatLng || !destLatLng) return;
 
-        setStatus('Finding route...', 'loading');
+        setStatus('Calculating equilibrium paths...', 'loading');
 
         try {
             const body = {
@@ -345,13 +406,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
-                throw new Error(err.detail || 'Route not found');
+                throw new Error(err.detail || 'No navigable route found');
             }
 
             const data = await res.json();
-            displayRoute(data);
+            cachedRouteData = data;
 
-            setStatus('Route found', 'ok');
+            // Render ONLY the selected route on the map
+            renderIndividualRoute();
+            setStatus('Route computed successfully', 'ok');
 
         } catch (err) {
             console.error(err);
@@ -359,81 +422,102 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function displayRoute(data) {
-        // Clear old routes
-        if (routeLayer) map.removeLayer(routeLayer);
-        if (altRouteLayer) map.removeLayer(altRouteLayer);
+    // ─── Render Individual Route onto Map ───
+    function renderIndividualRoute() {
+        if (!cachedRouteData) return;
 
-        // Draw alternative route first (underneath)
-        if (data.alternative) {
-            altRouteLayer = L.geoJSON(data.alternative, {
-                style: {
-                    color: '#38bdf8',
-                    weight: 4,
-                    opacity: .45,
-                    dashArray: '8 6',
-                },
-            }).addTo(map);
+        // Clear existing route polyline
+        if (activeRouteLayer) {
+            map.removeLayer(activeRouteLayer);
+            activeRouteLayer = null;
         }
 
-        // Draw primary route
-        routeLayer = L.geoJSON(data.route, {
+        const isFastest = activeDisplayedRoute === 'fastest';
+        const primaryIsFastest = cachedRouteData.stats.type === 'fastest';
+
+        // Select the appropriate GeoJSON geometry & stats
+        let routeGeoJSON = null;
+        let stats = null;
+
+        if (isFastest) {
+            routeGeoJSON = primaryIsFastest ? cachedRouteData.route : cachedRouteData.alternative;
+            stats = primaryIsFastest ? cachedRouteData.stats : cachedRouteData.alt_stats;
+        } else {
+            routeGeoJSON = !primaryIsFastest ? cachedRouteData.route : cachedRouteData.alternative;
+            stats = !primaryIsFastest ? cachedRouteData.stats : cachedRouteData.alt_stats;
+        }
+
+        if (!routeGeoJSON) {
+            routeGeoJSON = cachedRouteData.route;
+            stats = cachedRouteData.stats;
+        }
+
+        // Draw the SINGLE selected route
+        const routeColor = isFastest ? '#f97316' : '#38bdf8'; // Orange for Fastest, Cyan for Fuel-Efficient
+
+        activeRouteLayer = L.geoJSON(routeGeoJSON, {
             style: {
-                color: '#f97316',
-                weight: 5,
-                opacity: .85,
+                color: routeColor,
+                weight: 6,
+                opacity: 0.9,
+                lineCap: 'round',
+                lineJoin: 'round'
             },
         }).addTo(map);
 
-        // Fit bounds
-        const bounds = routeLayer.getBounds();
-        if (altRouteLayer) bounds.extend(altRouteLayer.getBounds());
-        map.fitBounds(bounds, { padding: [60, 60] });
+        // Bring markers to front
+        if (originMarker) originMarker.bringToFront();
+        if (destMarker) destMarker.bringToFront();
 
-        // Show results
-        showResults(data);
+        // Fit map bounds cleanly to the route
+        map.fitBounds(activeRouteLayer.getBounds(), { padding: [60, 60] });
+
+        // Update result card and comparison
+        updateResultsUI(stats, isFastest);
     }
 
-    function showResults(data) {
-        const s = data.stats;
-        $('rc-type').textContent = s.type === 'fastest' ? 'Fastest' : 'Fuel Efficient';
-        $('rc-time').textContent = s.time_min.toFixed(1);
-        $('rc-dist').textContent = s.distance_km.toFixed(2);
-        $('rc-fuel').textContent = s.fuel_liters.toFixed(3);
+    function updateResultsUI(stats, isFastest) {
+        if (!stats) return;
+
+        $('rc-type').textContent = isFastest ? 'Fastest Route' : 'Fuel-Efficient Route';
+        $('rc-type').className = 'rc-badge ' + (isFastest ? 'rc-badge-primary' : 'rc-badge-fuel');
+        $('result-active-card').className = 'result-card ' + (isFastest ? 'result-primary' : 'result-fuel-style');
+        $('rc-viewing-label').textContent = isFastest ? 'Optimized for minimum travel time' : 'Optimized for minimum fuel consumption';
+
+        $('rc-time').textContent = stats.time_min.toFixed(1);
+        $('rc-dist').textContent = stats.distance_km.toFixed(2);
+        $('rc-fuel').textContent = stats.fuel_liters.toFixed(3);
 
         sbResults.hidden = false;
         sbInstructions.hidden = true;
 
-        if (data.alt_stats) {
-            const a = data.alt_stats;
-            $('result-alt').hidden = false;
-            $('rc-alt-type').textContent = a.type === 'fastest' ? 'Fastest' : 'Fuel Efficient';
-            $('rc-alt-time').textContent = a.time_min.toFixed(1);
-            $('rc-alt-dist').textContent = a.distance_km.toFixed(2);
-            $('rc-alt-fuel').textContent = a.fuel_liters.toFixed(3);
+        // Trade-off comparison
+        if (cachedRouteData.alt_stats) {
+            const s1 = cachedRouteData.stats;
+            const s2 = cachedRouteData.alt_stats;
+            const timeDiff = Math.abs(s1.time_min - s2.time_min);
+            const fuelDiff = Math.abs(s1.fuel_liters - s2.fuel_liters);
+            const mlDiff = Math.round(fuelDiff * 1000);
 
-            // Calculate savings
-            const timeDiff = Math.abs(s.time_min - a.time_min);
-            const fuelDiff = Math.abs(s.fuel_liters - a.fuel_liters);
-            const savingsEl = $('result-savings');
-            savingsEl.hidden = false;
-            $('savings-text').textContent = `Difference: ${timeDiff.toFixed(1)} min · ${(fuelDiff * 1000).toFixed(0)} mL fuel`;
+            $('result-savings').hidden = false;
+            $('savings-text').innerHTML = `
+                Choosing <strong>Fuel-Efficient</strong> burns <strong>${mlDiff} mL less fuel</strong>, trading <strong>${timeDiff.toFixed(1)} mins</strong> of travel time under current traffic equilibrium.
+            `;
         } else {
-            $('result-alt').hidden = true;
             $('result-savings').hidden = true;
         }
     }
 
-    // ─── Show Congestion ───
+    // ─── Show Congestion Heatmap ───
     btnCongestion.addEventListener('click', showCongestion);
 
     async function showCongestion() {
         if (!originLatLng || !destLatLng || !networkLoaded) {
-            setStatus('Set origin and destination first', 'error');
+            setStatus('Set origin & destination pins first', 'error');
             return;
         }
 
-        setStatus('Running equilibrium...', 'loading');
+        setStatus('Simulating traffic equilibrium...', 'loading');
 
         try {
             const body = {
@@ -455,11 +539,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(body),
             });
 
-            if (!res.ok) throw new Error('Equilibrium failed');
+            if (!res.ok) throw new Error('Equilibrium simulation failed');
             const data = await res.json();
 
             displayCongestion(data.network);
-            setStatus('Congestion displayed', 'ok');
+            setStatus('Congestion heatmap active', 'ok');
 
         } catch (err) {
             console.error(err);
@@ -472,52 +556,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         congestionLayer = L.geoJSON(geojson, {
             filter: f => f.geometry.type === 'LineString' && f.properties.flow > 0,
+            renderer: canvasRenderer,
             style: f => {
                 const cong = f.properties.congestion || 0;
-                let color;
-                if (cong < .3) color = '#22c55e';
-                else if (cong < .6) color = '#f59e0b';
-                else if (cong < .9) color = '#f97316';
-                else color = '#ef4444';
+                let color = '#22c55e';
+                if (cong >= 0.9) color = '#ef4444';
+                else if (cong >= 0.6) color = '#f97316';
+                else if (cong >= 0.3) color = '#f59e0b';
 
                 return {
                     color: color,
-                    weight: 2 + Math.min(cong, 1.5) * 5,
-                    opacity: .4 + Math.min(cong, 1) * .5,
+                    weight: 3 + Math.min(cong, 1.5) * 5,
+                    opacity: 0.7 + Math.min(cong, 1) * 0.3,
                 };
-            },
-            onEachFeature: (feature, layer) => {
-                const p = feature.properties;
-                layer.bindPopup(`
-                    <div style="font-family:Inter,sans-serif;font-size:13px;color:#1a1a1a;">
-                        <strong>${p.name || 'Road'}</strong><br>
-                        Flow: ${p.flow} veh/h<br>
-                        Congestion: ${(p.congestion * 100).toFixed(0)}%<br>
-                        Time: ${p.time.toFixed(2)} min
-                    </div>
-                `);
             }
         }).addTo(map);
     }
 
-    // ─── Clear ───
+    // ─── Clear All Pins and Routes ───
     btnClear.addEventListener('click', clearRoute);
 
     function clearRoute() {
-        if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
-        if (altRouteLayer) { map.removeLayer(altRouteLayer); altRouteLayer = null; }
+        if (activeRouteLayer) { map.removeLayer(activeRouteLayer); activeRouteLayer = null; }
         if (congestionLayer) { map.removeLayer(congestionLayer); congestionLayer = null; }
         if (originMarker) { map.removeLayer(originMarker); originMarker = null; }
         if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
+
         originLatLng = null;
         destLatLng = null;
+        cachedRouteData = null;
         clickPhase = 'origin';
+
         sbResults.hidden = true;
         sbInstructions.hidden = false;
-        sbInstructions.querySelector('p').innerHTML = networkLoaded
-            ? 'Network loaded! <strong>Click the map</strong> to set origin (green).'
-            : 'Load a network, then <strong>click the map</strong> to set origin (green) and destination (red).';
-        setStatus('Cleared', 'ok');
+        instrText.innerHTML = networkLoaded
+            ? 'Road network ready! <strong>Click the map</strong> to set Origin Pin (A).'
+            : 'Click <strong>Load</strong> to import roads, then click map for <strong>Origin (A)</strong> and <strong>Destination (B)</strong>.';
+
+        setStatus('Pins and routes cleared', 'ok');
     }
 
     // ─── Helpers ───
@@ -530,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         mapLoading.hidden = !show;
     }
 
-    // ─── Boot ───
+    // ─── Initialize Map on Load ───
     initMap();
-    setStatus('Ready — enter a location and load the network', 'ok');
+    setStatus('Ready — enter location and click Load', 'ok');
 });

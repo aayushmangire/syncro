@@ -7,7 +7,7 @@
     <title>Syncro — Outsmart the Herd</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -22,11 +22,12 @@
             </a>
             <div class="nav-center" id="nav-center">
                 <a href="#hero" class="nav-item">Home</a>
-                <a href="#crisis" class="nav-item">The Problem</a>
+                <a href="#crisis" class="nav-item">The Crisis</a>
+                <a href="#case-study" class="nav-item">Real-World Data</a>
                 <a href="#how" class="nav-item">How It Works</a>
-                <a href="#app-section" class="nav-item nav-item-hot">Open Map</a>
+                <a href="#app-section" class="nav-item nav-item-hot">Interactive Map</a>
             </div>
-            <a href="#app-section" class="nav-cta">Launch App</a>
+            <a href="#app-section" class="nav-cta">Launch Map</a>
             <button class="nav-burger" id="nav-burger" aria-label="Menu" aria-expanded="false">
                 <span></span><span></span>
             </button>
@@ -52,32 +53,32 @@
             </p>
             <div class="hero-actions anim-in" data-d="3">
                 <a href="#app-section" class="btn btn-fill" id="cta-launch">
-                    Launch the Map
+                    Launch Interactive Map
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
-                <a href="#crisis" class="btn btn-line">Learn More</a>
+                <a href="#crisis" class="btn btn-line">Explore the Problem</a>
             </div>
             <div class="hero-metric-strip anim-in" data-d="4">
                 <div class="hm">
-                    <span class="hm-val" data-count="87" data-prefix="$" data-suffix="B">$0B</span>
-                    <span class="hm-label">Annual US congestion cost</span>
+                    <span class="hm-val" data-count="86.6" data-prefix="₹" data-suffix=" Cr" data-decimal="1">₹0 Cr</span>
+                    <span class="hm-label">Monthly fuel burned idling (Chennai)</span>
                 </div>
                 <div class="hm-div"></div>
                 <div class="hm">
-                    <span class="hm-val" data-count="54" data-suffix="hrs">0hrs</span>
-                    <span class="hm-label">Lost per commuter / year</span>
+                    <span class="hm-val" data-count="20357" data-suffix=" T">0 T</span>
+                    <span class="hm-label">Monthly CO₂ wasted in standstill</span>
                 </div>
                 <div class="hm-div"></div>
                 <div class="hm">
-                    <span class="hm-val" data-count="3.3" data-suffix="B gal" data-decimal="1">0B gal</span>
-                    <span class="hm-label">Fuel burned in idle traffic</span>
+                    <span class="hm-val" data-count="132" data-suffix=" hrs">0 hrs</span>
+                    <span class="hm-label">Lost per commuter / year in gridlock</span>
                 </div>
             </div>
         </div>
         <div class="hero-scroll-cue anim-in" data-d="5" aria-hidden="true"><div class="scroll-line"></div></div>
     </section>
 
-    <!-- ─── CRISIS ─── -->
+    <!-- ─── CRISIS: THE PARADOX ─── -->
     <section id="crisis" class="sec sec-crisis">
         <div class="wrap">
             <div class="sec-label fade-in">01 — The Crisis</div>
@@ -85,7 +86,7 @@
                 <div class="crisis-text fade-in">
                     <h2>Adding roads makes<br>traffic <em>worse.</em></h2>
                     <p>In 1968, mathematician Dietrich Braess proved that adding a new road to a congested network can <strong>increase</strong> total travel time for every driver. GPS apps each optimize for one person and ignore the system — creating the <strong>Price of Anarchy</strong>.</p>
-                    <p>In the US alone: <strong>25 million extra tons of CO₂</strong>, <strong>$87 billion</strong> in lost productivity, and <strong>54 hours stolen from every commuter</strong> — each year.</p>
+                    <p>When millions take identical "shortcuts", local bottlenecks trigger city-wide ripple cascades, burning massive amounts of fuel while vehicles sit stationary.</p>
                 </div>
                 <div class="crisis-diagram fade-in">
                     <div class="braess-net">
@@ -116,33 +117,153 @@
         </div>
     </section>
 
+    <!-- ─── REAL-WORLD DATA: CHENNAI CASE STUDY ─── -->
+    <section id="case-study" class="sec sec-case">
+        <div class="wrap">
+            <div class="sec-label fade-in">02 — Real-World Impact Study</div>
+            <div class="case-header fade-in">
+                <h2 class="sec-h2">The Anatomy of Urban Gridlock</h2>
+                <p class="sec-sub">Based on verified transportation data, TomTom Traffic Index, and CSIR-CRRI fuel consumption research across Chennai's active vehicle fleet.</p>
+            </div>
+
+            <!-- Baseline Cards -->
+            <div class="case-cards-grid">
+                <div class="case-card fade-in">
+                    <div class="case-card-tag">Active Fleet</div>
+                    <div class="case-metric">3.5 Million</div>
+                    <p class="case-desc">50% active daily fleet out of ~70 Lakh registered vehicles in Chennai.</p>
+                    <div class="fleet-breakdown">
+                        <div class="fleet-bar">
+                            <span class="f-2w" style="width: 75%;" title="75% Two-Wheelers"></span>
+                            <span class="f-4w" style="width: 20%;" title="20% Cars"></span>
+                            <span class="f-com" style="width: 5%;" title="5% Commercial/Autos"></span>
+                        </div>
+                        <div class="fleet-legend">
+                            <span><i class="dot-2w"></i>2.62M Two-Wheelers (75%)</span>
+                            <span><i class="dot-4w"></i>700k Cars (20%)</span>
+                            <span><i class="dot-com"></i>175k Autos/Buses (5%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="case-card fade-in">
+                    <div class="case-card-tag">TomTom Index</div>
+                    <div class="case-metric">132 Hours / Year</div>
+                    <p class="case-desc">Lost per commuter strictly in rush-hour congestion — averaging <strong>20 minutes (0.33 hrs) of pure stationary idling</strong> per vehicle daily.</p>
+                    <div class="idle-rates">
+                        <span class="rate-badge">2W: 0.14 L/hr</span>
+                        <span class="rate-badge">Cars: 0.60 L/hr</span>
+                        <span class="rate-badge">Commercial: 0.50 L/hr</span>
+                    </div>
+                </div>
+
+                <div class="case-card case-card-highlight fade-in">
+                    <div class="case-card-tag hot-tag">Monthly Financial Toll</div>
+                    <div class="case-metric hot-metric">₹86.6 Crores</div>
+                    <div class="case-submetric">≈ $10.4 Million USD / Month</div>
+                    <p class="case-desc">Burned by Chennai commuters while completely stationary at traffic signals and chokepoints (assuming ₹100/L average fuel price).</p>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="case-table-wrap fade-in">
+                <div class="table-title">Monthly Fuel Wastage & Emissions Breakdown (30-Day Cycle)</div>
+                <div class="table-responsive">
+                    <table class="case-table">
+                        <thead>
+                            <tr>
+                                <th>Vehicle Category</th>
+                                <th>Active Daily Fleet</th>
+                                <th>Fuel Wasted / Month</th>
+                                <th>Monthly CO₂ Emissions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Two-Wheelers</strong></td>
+                                <td>2,625,000</td>
+                                <td class="num-highlight">3,638,250 Liters</td>
+                                <td>8,550 Metric Tons</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cars / 4-Wheelers</strong></td>
+                                <td>700,000</td>
+                                <td class="num-highlight">4,158,000 Liters</td>
+                                <td>9,771 Metric Tons</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Commercial / Autos / Buses</strong></td>
+                                <td>175,000</td>
+                                <td class="num-highlight">866,250 Liters</td>
+                                <td>2,036 Metric Tons</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>TOTAL</strong></td>
+                                <td><strong>3,500,000</strong></td>
+                                <td class="total-highlight">8,662,500 Liters</td>
+                                <td class="total-highlight">20,357 Metric Tons</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Environmental Hazard Callout -->
+            <div class="env-box fade-in">
+                <div class="env-header">
+                    <div class="env-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <div>
+                        <h3>The Hidden Toxic Breathing-Zone Footprint</h3>
+                        <p class="env-sub">20,357 Metric Tons of CO₂ equals the monthly footprint of 15,000 households. Because idling engines operate sub-optimally, this wastage dumps <strong>165 Metric Tons of toxic criteria pollutants</strong> directly into breathing zones every month:</p>
+                    </div>
+                </div>
+                <div class="pollutant-grid">
+                    <div class="pollutant-card">
+                        <span class="p-name">Carbon Monoxide (CO)</span>
+                        <span class="p-desc">Impairs oxygen transfer in bloodstream</span>
+                    </div>
+                    <div class="pollutant-card">
+                        <span class="p-name">Nitrogen Oxides (NOx)</span>
+                        <span class="p-desc">Primary precursor for urban smog & asthma</span>
+                    </div>
+                    <div class="pollutant-card">
+                        <span class="p-name">Particulate Matter (PM 2.5)</span>
+                        <span class="p-desc">Microscopic soot penetrating deep lung tissue</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ─── HOW IT WORKS ─── -->
     <section id="how" class="sec sec-how">
         <div class="wrap">
-            <div class="sec-label fade-in">02 — How It Works</div>
+            <div class="sec-label fade-in">03 — How It Works</div>
             <h2 class="sec-h2 fade-in">Route the system, not just the self.</h2>
             <div class="how-steps">
                 <div class="step fade-in">
                     <div class="step-num">01</div>
                     <div class="step-body">
-                        <h3>Pick a Location</h3>
-                        <p>Search any city or neighborhood. Syncro pulls the real road network from OpenStreetMap — actual geometry, lane counts, speed limits.</p>
+                        <h3>Pick Any Location</h3>
+                        <p>Search any city or neighborhood. Syncro fetches real road geometry, speed limits, and intersection topology from OpenStreetMap.</p>
                     </div>
                 </div>
                 <div class="step-connector"><div class="conn-line"></div></div>
                 <div class="step fade-in">
                     <div class="step-num">02</div>
                     <div class="step-body">
-                        <h3>Set Origin & Destination</h3>
-                        <p>Click two points on the map. Choose between <strong>fastest route</strong> or <strong>most fuel-efficient route</strong>. Toggle selfish vs system-optimal.</p>
+                        <h3>Click Origin & Destination</h3>
+                        <p>Place custom pin markers on the map. Select between <strong>Fastest</strong> or <strong>Fuel Efficient</strong> and compare routes individually.</p>
                     </div>
                 </div>
                 <div class="step-connector"><div class="conn-line"></div></div>
                 <div class="step fade-in">
                     <div class="step-num">03</div>
                     <div class="step-body">
-                        <h3>See the Difference</h3>
-                        <p>Watch congestion flow across the network. Compare routes side-by-side. See how much time and fuel the system wastes.</p>
+                        <h3>Equilibrium & Congestion</h3>
+                        <p>Simulate hundreds of vehicles with BPR cost functions to observe the Braess bottleneck shift and systemic fuel savings.</p>
                     </div>
                 </div>
             </div>
@@ -158,7 +279,7 @@
             <div class="sb-header">
                 <div class="sb-brand">
                     <div class="brand-mark brand-mark-sm"><span class="mark-s">S</span></div>
-                    <span>Syncro</span>
+                    <span>Syncro Map Engine</span>
                 </div>
                 <button class="sb-collapse" id="sb-collapse" aria-label="Collapse sidebar">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
@@ -167,23 +288,23 @@
 
             <!-- Location Search -->
             <div class="sb-section">
-                <label class="sb-label">Location</label>
+                <label class="sb-label">Location / City</label>
                 <div class="search-row">
-                    <input type="text" class="sb-input" id="location-input" placeholder="Enter city or address..." value="Bangalore, India">
+                    <input type="text" class="sb-input" id="location-input" placeholder="Search city or area..." value="Chennai, India">
                     <button class="sb-btn-icon" id="btn-load" aria-label="Load network">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                     </button>
                 </div>
                 <div class="sb-row">
-                    <label class="sb-label-sm">Radius</label>
-                    <input type="range" id="radius-range" min="300" max="2500" value="1000" step="100" class="sb-range">
-                    <span class="sb-range-val" id="radius-val">1000m</span>
+                    <label class="sb-label-sm">Area Radius</label>
+                    <input type="range" id="radius-range" min="300" max="2500" value="1200" step="100" class="sb-range">
+                    <span class="sb-range-val" id="radius-val">1200m</span>
                 </div>
             </div>
 
-            <!-- Route Mode -->
+            <!-- Route Type Selection -->
             <div class="sb-section">
-                <label class="sb-label">Route Type</label>
+                <label class="sb-label">Active Route Optimization</label>
                 <div class="sb-toggle-group">
                     <button class="sb-toggle active" id="mode-fastest" data-mode="fastest">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -207,10 +328,10 @@
 
             <!-- Traffic Volume -->
             <div class="sb-section">
-                <label class="sb-label">Simulated Drivers</label>
+                <label class="sb-label">Traffic Load (Vehicles)</label>
                 <div class="sb-row">
-                    <input type="range" id="drivers-range" min="0" max="3000" value="500" step="50" class="sb-range">
-                    <span class="sb-range-val" id="drivers-val">500</span>
+                    <input type="range" id="drivers-range" min="0" max="3000" value="600" step="50" class="sb-range">
+                    <span class="sb-range-val" id="drivers-val">600</span>
                 </div>
             </div>
 
@@ -219,27 +340,35 @@
                 <div class="sb-instr-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                 </div>
-                <p>Load a network, then <strong>click the map</strong> to set origin (green) and destination (red).</p>
+                <p id="instr-text">Click <strong>Load</strong> to import roads, then click map for <strong>Origin (A)</strong> and <strong>Destination (B)</strong>.</p>
             </div>
 
-            <!-- Results Panel (hidden until route found) -->
+            <!-- Results Panel -->
             <div class="sb-section sb-results" id="sb-results" hidden>
-                <label class="sb-label">Route Results</label>
+                <div class="results-top-bar">
+                    <label class="sb-label">Route Details</label>
+                    <!-- Route switcher tab to show routes individually -->
+                    <div class="route-view-tabs" role="tablist">
+                        <button class="tab-btn active" id="tab-fastest">Fastest</button>
+                        <button class="tab-btn" id="tab-fuel">Fuel-Efficient</button>
+                    </div>
+                </div>
+
                 <div class="result-cards">
-                    <!-- Primary Route -->
-                    <div class="result-card result-primary" id="result-primary">
+                    <!-- Active Selected Route Card -->
+                    <div class="result-card result-primary" id="result-active-card">
                         <div class="rc-header">
-                            <span class="rc-badge rc-badge-primary" id="rc-type">Fastest</span>
-                            <span class="rc-label">Primary Route</span>
+                            <span class="rc-badge rc-badge-primary" id="rc-type">Fastest Route</span>
+                            <span class="rc-label" id="rc-viewing-label">Currently Displayed on Map</span>
                         </div>
                         <div class="rc-stats">
                             <div class="rc-stat">
                                 <span class="rc-val" id="rc-time">—</span>
-                                <span class="rc-unit">min</span>
+                                <span class="rc-unit">min time</span>
                             </div>
                             <div class="rc-stat">
                                 <span class="rc-val" id="rc-dist">—</span>
-                                <span class="rc-unit">km</span>
+                                <span class="rc-unit">km dist</span>
                             </div>
                             <div class="rc-stat">
                                 <span class="rc-val" id="rc-fuel">—</span>
@@ -247,30 +376,11 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Alternative Route -->
-                    <div class="result-card result-alt" id="result-alt" hidden>
-                        <div class="rc-header">
-                            <span class="rc-badge rc-badge-alt" id="rc-alt-type">Fuel Efficient</span>
-                            <span class="rc-label">Alternative</span>
-                        </div>
-                        <div class="rc-stats">
-                            <div class="rc-stat">
-                                <span class="rc-val" id="rc-alt-time">—</span>
-                                <span class="rc-unit">min</span>
-                            </div>
-                            <div class="rc-stat">
-                                <span class="rc-val" id="rc-alt-dist">—</span>
-                                <span class="rc-unit">km</span>
-                            </div>
-                            <div class="rc-stat">
-                                <span class="rc-val" id="rc-alt-fuel">—</span>
-                                <span class="rc-unit">L fuel</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Savings -->
+
+                    <!-- Comparison & Savings -->
                     <div class="result-savings" id="result-savings" hidden>
-                        <span id="savings-text">—</span>
+                        <div class="savings-title">Trade-off Comparison</div>
+                        <div class="savings-text" id="savings-text">—</div>
                     </div>
                 </div>
             </div>
@@ -279,11 +389,11 @@
             <div class="sb-section sb-actions">
                 <button class="sb-btn" id="btn-clear">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
-                    Clear Route
+                    Clear Pins
                 </button>
                 <button class="sb-btn" id="btn-congestion">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                    Show Congestion
+                    Heatmap
                 </button>
             </div>
 
@@ -296,11 +406,14 @@
 
         <!-- Map Container -->
         <div class="map-container" id="map-container">
+            <button class="sb-expand" id="sb-expand" aria-label="Expand sidebar" title="Open Controls">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
             <div id="map" class="map"></div>
             <!-- Loading overlay -->
             <div class="map-loading" id="map-loading" hidden>
                 <div class="loading-spinner"></div>
-                <span>Loading road network...</span>
+                <span id="loading-msg">Extracting road geometry from OpenStreetMap...</span>
             </div>
         </div>
     </section>
@@ -315,7 +428,7 @@
                     <p class="footer-tag">Outsmart the Herd.</p>
                 </div>
             </div>
-            <p class="footer-copy">&copy; 2026 Syncro &middot; Price of Anarchy ends here.</p>
+            <p class="footer-copy">&copy; 2026 Syncro &middot; The Price of Anarchy ends here.</p>
         </div>
     </footer>
 

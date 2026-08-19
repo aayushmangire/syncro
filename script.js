@@ -3,6 +3,7 @@
    • 100% Real Turn-by-Turn Road Geometry (OpenStreetMap & OSRM)
    • Follows actual curves, corners, highways, and street turns
    • Snap-to-Road between Pin A and Pin B
+   • Sub-pixel precise Draggable SVG Markers
    • Clean Dotted Polyline Styling along Asphalt
    • Fast vs Fuel-Efficient Routing Modes
    • Spring Physics Scroll Reveals & Top Progress Bar
@@ -208,23 +209,26 @@ document.addEventListener('DOMContentLoaded', () => {
     let cachedRouteData = null;
     let activeDisplayedRoute = 'fastest';
 
-    // ─── Custom Pin Marker Factory ───
+    // ─── Sub-Pixel Precise SVG Teardrop Pin Marker ───
     function createPinIcon(label, isOrigin) {
-        const cls = isOrigin ? 'syncro-pin-origin' : 'syncro-pin-dest';
+        const color = isOrigin ? '#22c55e' : '#ef4444';
+        const pulseCls = isOrigin ? 'pulse-green' : 'pulse-red';
         const html = `
-            <div class="syncro-pin ${cls}">
-                <div class="pin-head">
-                    <span class="pin-label">${label}</span>
-                </div>
-                <div class="pin-pulse"></div>
+            <div class="precise-map-pin">
+                <svg width="32" height="42" viewBox="0 0 32 42" fill="none" class="syncro-pin-svg">
+                    <path d="M16 0C7.16344 0 0 7.16344 0 16C0 27.25 14.5 40.5 15.35 41.28C15.72 41.62 16.28 41.62 16.65 41.28C17.5 40.5 32 27.25 32 16C32 7.16344 24.8366 0 16 0Z" fill="${color}" stroke="#ffffff" stroke-width="2"/>
+                    <circle cx="16" cy="15" r="9" fill="#09090b"/>
+                    <text x="16" y="19" text-anchor="middle" fill="#ffffff" font-family="'Space Grotesk', system-ui, sans-serif" font-weight="700" font-size="12">${label}</text>
+                </svg>
+                <div class="pin-radar-ring ${pulseCls}"></div>
             </div>
         `;
         return L.divIcon({
             html: html,
-            className: 'custom-pin-marker',
+            className: 'custom-pin-container',
             iconSize: [32, 42],
             iconAnchor: [16, 42],
-            popupAnchor: [0, -42],
+            popupAnchor: [0, -42]
         });
     }
 
@@ -236,11 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
             zoomControl: true,
             scrollWheelZoom: true,
             smoothWheelZoom: true,
-            wheelDebounceTime: 30,
-            wheelPxPerZoomLevel: 50,
             doubleClickZoom: true,
             touchZoom: true,
             boxZoom: true,
+            keyboard: true,
             dragging: true,
             attributionControl: true,
         });
@@ -256,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setStatus('Ready — click on any road to place Origin (A)', 'ok');
     }
 
-    // ─── Click Map to Drop Pins ───
+    // ─── Click Map to Drop Pins with Live Dragging ───
     function onMapClick(e) {
         const latlng = e.latlng;
 
@@ -265,22 +268,36 @@ document.addEventListener('DOMContentLoaded', () => {
             if (originMarker) map.removeLayer(originMarker);
             originMarker = L.marker([latlng.lat, latlng.lng], {
                 icon: createPinIcon('A', true),
+                draggable: true,
                 zIndexOffset: 1000
             }).addTo(map);
+
+            // Enable instant re-routing on drag
+            originMarker.on('dragend', function(ev) {
+                originLatLng = ev.target.getLatLng();
+                if (destLatLng) fetchTurnByTurnRoadRoute();
+            });
 
             originLatLng = latlng;
             clickPhase = 'destination';
             setStatus('Origin (A) placed. Now click for Destination (B).', 'ok');
             if (instrText) {
-                instrText.innerHTML = 'Origin (A) selected! Now <strong>click another road</strong> to set Destination (B).';
+                instrText.innerHTML = 'Origin (A) placed! Now <strong>click another road</strong> for Destination (B).';
             }
         } else {
             // Set Destination (Pin B)
             if (destMarker) map.removeLayer(destMarker);
             destMarker = L.marker([latlng.lat, latlng.lng], {
                 icon: createPinIcon('B', false),
+                draggable: true,
                 zIndexOffset: 1000
             }).addTo(map);
+
+            // Enable instant re-routing on drag
+            destMarker.on('dragend', function(ev) {
+                destLatLng = ev.target.getLatLng();
+                if (originLatLng) fetchTurnByTurnRoadRoute();
+            });
 
             destLatLng = latlng;
             clickPhase = 'origin';
@@ -387,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
-                headers: { 'User-Agent': 'SyncroRoadNavigator/5.0' }
+                headers: { 'User-Agent': 'SyncroRoadNavigator/6.0' }
             });
             const geoData = await geoRes.json();
 
@@ -396,7 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lon = parseFloat(geoData[0].lon);
                 mapCenter = { lat, lon };
                 map.flyTo([lat, lon], 14, { duration: 1.2 });
-                setStatus(`Arrived in ${query}. Click two points to route along roads.`, 'ok');
+                setStatus(`Arrived in ${query}. Click on roads to place pins.`, 'ok');
             } else {
                 setStatus('Location not found', 'error');
             }
@@ -414,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchTurnByTurnRoadRoute() {
         if (!originLatLng || !destLatLng) return;
 
-        setStatus('Calculating true road path & turns...', 'loading');
+        setStatus('Routing along actual roads...', 'loading');
 
         const originLon = originLatLng.lng;
         const originLat = originLatLng.lat;
@@ -443,7 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const primTimeMin = (primaryRoute.duration / 60) * congFactor;
             const primFuelLiters = primDistKm * 0.068 * congFactor;
 
-            // Secondary / Alternative real road route (or arterial route)
+            // Secondary / Alternative real road route
             let altGeoJSON = null;
             let altDistKm = primDistKm;
             let altTimeMin = primTimeMin * 1.1;
@@ -455,7 +472,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 altTimeMin = (secondaryRoute.duration / 60) * (currentRouting === 'optimal' ? 0.95 : 1.05);
                 altFuelLiters = altDistKm * 0.059;
             } else {
-                // Same road geometry with eco-equilibrium stats
                 altGeoJSON = primaryRoute.geometry;
                 altTimeMin = primTimeMin * 1.08;
                 altFuelLiters = primDistKm * 0.056;
@@ -487,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (err) {
             console.error('Routing failed:', err);
-            setStatus('Routing error — please pick points on valid roads', 'error');
+            setStatus('Pick points on accessible roads', 'error');
         }
     }
 
@@ -636,7 +652,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showLoading(show) {
-        if (mapLoading) mapLoading.hidden = !show;
+        if (mapLoading) {
+            mapLoading.hidden = !show;
+            mapLoading.classList.toggle('active', show);
+        }
     }
 
     // ─── Initialize Map ───

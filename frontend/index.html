@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Syncro — Outsmart the Herd. Real-time traffic equilibrium on real road networks. Compare fastest vs fuel-efficient routing.">
+    <title>Syncro — Outsmart the Herd</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ─── NAV ─── -->
+    <header id="site-header" class="site-header">
+        <nav class="nav">
+            <a href="#" class="nav-brand">
+                <div class="brand-mark"><span class="mark-s">S</span></div>
+                Syncro
+            </a>
+            <div class="nav-center" id="nav-center">
+                <a href="#hero" class="nav-item">Home</a>
+                <a href="#crisis" class="nav-item">The Problem</a>
+                <a href="#how" class="nav-item">How It Works</a>
+                <a href="#app-section" class="nav-item nav-item-hot">Open Map</a>
+            </div>
+            <a href="#app-section" class="nav-cta">Launch App</a>
+            <button class="nav-burger" id="nav-burger" aria-label="Menu" aria-expanded="false">
+                <span></span><span></span>
+            </button>
+        </nav>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         LANDING PAGE
+         ═══════════════════════════════════════════════════════════ -->
+
+    <!-- ─── HERO ─── -->
+    <section id="hero" class="hero">
+        <canvas id="net-canvas" aria-hidden="true"></canvas>
+        <div class="hero-inner">
+            <p class="hero-eyebrow anim-in" data-d="0">The Price of Anarchy</p>
+            <h1 class="hero-h1 anim-in" data-d="1">
+                When every driver takes<br>
+                the <em>fastest</em> route,<br>
+                <strong>everyone loses.</strong>
+            </h1>
+            <p class="hero-sub anim-in" data-d="2">
+                Syncro maps the gap between selfish GPS routing and true system-optimal flow — on real road networks, in real time.
+            </p>
+            <div class="hero-actions anim-in" data-d="3">
+                <a href="#app-section" class="btn btn-fill" id="cta-launch">
+                    Launch the Map
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <a href="#crisis" class="btn btn-line">Learn More</a>
+            </div>
+            <div class="hero-metric-strip anim-in" data-d="4">
+                <div class="hm">
+                    <span class="hm-val" data-count="87" data-prefix="$" data-suffix="B">$0B</span>
+                    <span class="hm-label">Annual US congestion cost</span>
+                </div>
+                <div class="hm-div"></div>
+                <div class="hm">
+                    <span class="hm-val" data-count="54" data-suffix="hrs">0hrs</span>
+                    <span class="hm-label">Lost per commuter / year</span>
+                </div>
+                <div class="hm-div"></div>
+                <div class="hm">
+                    <span class="hm-val" data-count="3.3" data-suffix="B gal" data-decimal="1">0B gal</span>
+                    <span class="hm-label">Fuel burned in idle traffic</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-scroll-cue anim-in" data-d="5" aria-hidden="true"><div class="scroll-line"></div></div>
+    </section>
+
+    <!-- ─── CRISIS ─── -->
+    <section id="crisis" class="sec sec-crisis">
+        <div class="wrap">
+            <div class="sec-label fade-in">01 — The Crisis</div>
+            <div class="crisis-grid">
+                <div class="crisis-text fade-in">
+                    <h2>Adding roads makes<br>traffic <em>worse.</em></h2>
+                    <p>In 1968, mathematician Dietrich Braess proved that adding a new road to a congested network can <strong>increase</strong> total travel time for every driver. GPS apps each optimize for one person and ignore the system — creating the <strong>Price of Anarchy</strong>.</p>
+                    <p>In the US alone: <strong>25 million extra tons of CO₂</strong>, <strong>$87 billion</strong> in lost productivity, and <strong>54 hours stolen from every commuter</strong> — each year.</p>
+                </div>
+                <div class="crisis-diagram fade-in">
+                    <div class="braess-net">
+                        <svg viewBox="0 0 380 260" class="braess-svg" aria-label="Braess Paradox diagram">
+                            <line x1="60" y1="130" x2="190" y2="40" class="edge"/>
+                            <line x1="60" y1="130" x2="190" y2="220" class="edge"/>
+                            <line x1="190" y1="40" x2="320" y2="130" class="edge"/>
+                            <line x1="190" y1="220" x2="320" y2="130" class="edge"/>
+                            <line x1="190" y1="40" x2="190" y2="220" class="edge edge-danger"/>
+                            <text x="112" y="72" class="edge-label">t = f/c</text>
+                            <text x="112" y="198" class="edge-label">t = 25</text>
+                            <text x="262" y="72" class="edge-label">t = 25</text>
+                            <text x="262" y="198" class="edge-label">t = f/c</text>
+                            <text x="202" y="134" class="edge-label edge-label-danger">t ≈ 0</text>
+                            <circle cx="60" cy="130" r="22" class="node"/>
+                            <text x="60" y="136" class="node-label">S</text>
+                            <circle cx="190" cy="40" r="22" class="node"/>
+                            <text x="190" y="46" class="node-label">A</text>
+                            <circle cx="190" cy="220" r="22" class="node"/>
+                            <text x="190" y="226" class="node-label">B</text>
+                            <circle cx="320" cy="130" r="22" class="node"/>
+                            <text x="320" y="136" class="node-label">T</text>
+                        </svg>
+                        <p class="diagram-caption">The Braess network — the shortcut A→B makes <em>everyone</em> slower.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── HOW IT WORKS ─── -->
+    <section id="how" class="sec sec-how">
+        <div class="wrap">
+            <div class="sec-label fade-in">02 — How It Works</div>
+            <h2 class="sec-h2 fade-in">Route the system, not just the self.</h2>
+            <div class="how-steps">
+                <div class="step fade-in">
+                    <div class="step-num">01</div>
+                    <div class="step-body">
+                        <h3>Pick a Location</h3>
+                        <p>Search any city or neighborhood. Syncro pulls the real road network from OpenStreetMap — actual geometry, lane counts, speed limits.</p>
+                    </div>
+                </div>
+                <div class="step-connector"><div class="conn-line"></div></div>
+                <div class="step fade-in">
+                    <div class="step-num">02</div>
+                    <div class="step-body">
+                        <h3>Set Origin & Destination</h3>
+                        <p>Click two points on the map. Choose between <strong>fastest route</strong> or <strong>most fuel-efficient route</strong>. Toggle selfish vs system-optimal.</p>
+                    </div>
+                </div>
+                <div class="step-connector"><div class="conn-line"></div></div>
+                <div class="step fade-in">
+                    <div class="step-num">03</div>
+                    <div class="step-body">
+                        <h3>See the Difference</h3>
+                        <p>Watch congestion flow across the network. Compare routes side-by-side. See how much time and fuel the system wastes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         THE MAP APPLICATION
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="app-section" class="app-section">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sb-header">
+                <div class="sb-brand">
+                    <div class="brand-mark brand-mark-sm"><span class="mark-s">S</span></div>
+                    <span>Syncro</span>
+                </div>
+                <button class="sb-collapse" id="sb-collapse" aria-label="Collapse sidebar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+            </div>
+
+            <!-- Location Search -->
+            <div class="sb-section">
+                <label class="sb-label">Location</label>
+                <div class="search-row">
+                    <input type="text" class="sb-input" id="location-input" placeholder="Enter city or address..." value="Bangalore, India">
+                    <button class="sb-btn-icon" id="btn-load" aria-label="Load network">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    </button>
+                </div>
+                <div class="sb-row">
+                    <label class="sb-label-sm">Radius</label>
+                    <input type="range" id="radius-range" min="300" max="2500" value="1000" step="100" class="sb-range">
+                    <span class="sb-range-val" id="radius-val">1000m</span>
+                </div>
+            </div>
+
+            <!-- Route Mode -->
+            <div class="sb-section">
+                <label class="sb-label">Route Type</label>
+                <div class="sb-toggle-group">
+                    <button class="sb-toggle active" id="mode-fastest" data-mode="fastest">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        Fastest
+                    </button>
+                    <button class="sb-toggle" id="mode-fuel" data-mode="fuel_efficient">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"/></svg>
+                        Fuel Efficient
+                    </button>
+                </div>
+            </div>
+
+            <!-- Routing Strategy -->
+            <div class="sb-section">
+                <label class="sb-label">Routing Strategy</label>
+                <div class="sb-toggle-group">
+                    <button class="sb-toggle active" id="route-selfish" data-routing="selfish">Selfish (UE)</button>
+                    <button class="sb-toggle" id="route-optimal" data-routing="optimal">System-Optimal</button>
+                </div>
+            </div>
+
+            <!-- Traffic Volume -->
+            <div class="sb-section">
+                <label class="sb-label">Simulated Drivers</label>
+                <div class="sb-row">
+                    <input type="range" id="drivers-range" min="0" max="3000" value="500" step="50" class="sb-range">
+                    <span class="sb-range-val" id="drivers-val">500</span>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="sb-section sb-instructions" id="sb-instructions">
+                <div class="sb-instr-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                </div>
+                <p>Load a network, then <strong>click the map</strong> to set origin (green) and destination (red).</p>
+            </div>
+
+            <!-- Results Panel (hidden until route found) -->
+            <div class="sb-section sb-results" id="sb-results" hidden>
+                <label class="sb-label">Route Results</label>
+                <div class="result-cards">
+                    <!-- Primary Route -->
+                    <div class="result-card result-primary" id="result-primary">
+                        <div class="rc-header">
+                            <span class="rc-badge rc-badge-primary" id="rc-type">Fastest</span>
+                            <span class="rc-label">Primary Route</span>
+                        </div>
+                        <div class="rc-stats">
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-time">—</span>
+                                <span class="rc-unit">min</span>
+                            </div>
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-dist">—</span>
+                                <span class="rc-unit">km</span>
+                            </div>
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-fuel">—</span>
+                                <span class="rc-unit">L fuel</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Alternative Route -->
+                    <div class="result-card result-alt" id="result-alt" hidden>
+                        <div class="rc-header">
+                            <span class="rc-badge rc-badge-alt" id="rc-alt-type">Fuel Efficient</span>
+                            <span class="rc-label">Alternative</span>
+                        </div>
+                        <div class="rc-stats">
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-alt-time">—</span>
+                                <span class="rc-unit">min</span>
+                            </div>
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-alt-dist">—</span>
+                                <span class="rc-unit">km</span>
+                            </div>
+                            <div class="rc-stat">
+                                <span class="rc-val" id="rc-alt-fuel">—</span>
+                                <span class="rc-unit">L fuel</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Savings -->
+                    <div class="result-savings" id="result-savings" hidden>
+                        <span id="savings-text">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="sb-section sb-actions">
+                <button class="sb-btn" id="btn-clear">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    Clear Route
+                </button>
+                <button class="sb-btn" id="btn-congestion">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Show Congestion
+                </button>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="sb-status" id="sb-status">
+                <div class="status-dot"></div>
+                <span id="status-text">Ready</span>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <div class="map-container" id="map-container">
+            <div id="map" class="map"></div>
+            <!-- Loading overlay -->
+            <div class="map-loading" id="map-loading" hidden>
+                <div class="loading-spinner"></div>
+                <span>Loading road network...</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── FOOTER ─── -->
+    <footer class="site-footer">
+        <div class="wrap footer-inner">
+            <div class="footer-left">
+                <div class="brand-mark brand-mark-sm"><span class="mark-s">S</span></div>
+                <div>
+                    <p class="footer-name">Syncro</p>
+                    <p class="footer-tag">Outsmart the Herd.</p>
+                </div>
+            </div>
+            <p class="footer-copy">&copy; 2026 Syncro &middot; Price of Anarchy ends here.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="app.js"></script>
+</body>
+</html>

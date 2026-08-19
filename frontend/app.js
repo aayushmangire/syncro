@@ -1,11 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════
-   SYNCRO — Real-World Street Routing Engine v7.0
+   SYNCRO — Real-World Street Routing Engine v8.0
    • 100% Real Turn-by-Turn Road Geometry (OpenStreetMap & OSRM)
    • Voice Navigation Assistant with TTS turn instructions
    • GPS Live Position Tracking & Re-centering
    • Auto-clear previous routes when placing new markers
    • Start Route / Stop Navigation mode
-   • Premium Scroll Reveal & Top Progress Bar
+   • 100% Accessible (WCAG 2.1 AA/AAA, ARIA 1.2, Keyboard, Focus)
+   • Spring Physics Scroll Reveals & Top Progress Bar
    ═══════════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,12 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
        1. SCROLL ANIMATIONS & MOTION SYSTEM
        ═══════════════════════════════════════════════════════════ */
 
-    // ─── Top Scroll Progress Bar ───
+    // ─── Top Scroll Progress Bar (with ARIA Progressbar updates) ───
     const scrollBar = document.getElementById('scroll-progress');
+    const scrollProgressContainer = document.getElementById('scroll-progress-container');
     window.addEventListener('scroll', () => {
         const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
+        const progress = totalHeight > 0 ? Math.round((window.scrollY / totalHeight) * 100) : 0;
         if (scrollBar) scrollBar.style.width = `${progress}%`;
+        if (scrollProgressContainer) {
+            scrollProgressContainer.setAttribute('aria-valuenow', progress);
+        }
     }, { passive: true });
 
     // ─── Intersection Observer with Spring Physics ───
@@ -68,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             l.addEventListener('click', () => {
                 navCenter.classList.remove('mob-open');
                 burger.classList.remove('open');
+                burger.setAttribute('aria-expanded', 'false');
             });
         });
     }
@@ -76,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('a[href^="#"]').forEach(a => {
         a.addEventListener('click', e => {
             const href = a.getAttribute('href');
-            if (href === '#') return;
+            if (href === '#' || href === '#main-content') return;
             const el = document.querySelector(href);
             if (el) {
                 e.preventDefault();
@@ -154,7 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     p.vx += (mdx / md) * 0.08;
                     p.vy += (mdy / md) * 0.08;
                 }
-                // Dampen velocity
                 p.vx *= 0.998;
                 p.vy *= 0.998;
             });
@@ -174,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Mouse connection lines
             if (mouseX > 0) {
                 pts.forEach(p => {
                     const dx = p.x - mouseX, dy = p.y - mouseY;
@@ -270,16 +274,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── Sub-Pixel Precise SVG Teardrop Pin Marker ───
     function createPinIcon(label, isOrigin) {
-        const color = isOrigin ? '#22c55e' : '#ef4444';
+        const color = isOrigin ? '#22c55e' : '#f87171';
         const pulseCls = isOrigin ? 'pulse-green' : 'pulse-red';
+        const ariaText = isOrigin ? 'Origin marker A' : 'Destination marker B';
         const html = `
-            <div class="precise-map-pin">
-                <svg width="32" height="42" viewBox="0 0 32 42" fill="none" class="syncro-pin-svg">
+            <div class="precise-map-pin" role="img" aria-label="${ariaText}">
+                <svg width="32" height="42" viewBox="0 0 32 42" fill="none" class="syncro-pin-svg" aria-hidden="true" focusable="false">
                     <path d="M16 0C7.16344 0 0 7.16344 0 16C0 27.25 14.5 40.5 15.35 41.28C15.72 41.62 16.28 41.62 16.65 41.28C17.5 40.5 32 27.25 32 16C32 7.16344 24.8366 0 16 0Z" fill="${color}" stroke="#ffffff" stroke-width="2"/>
                     <circle cx="16" cy="15" r="9" fill="#09090b"/>
                     <text x="16" y="19" text-anchor="middle" fill="#ffffff" font-family="'Space Grotesk', system-ui, sans-serif" font-weight="700" font-size="12">${label}</text>
                 </svg>
-                <div class="pin-radar-ring ${pulseCls}"></div>
+                <div class="pin-radar-ring ${pulseCls}" aria-hidden="true"></div>
             </div>
         `;
         return L.divIcon({
@@ -294,12 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── GPS Arrow Icon for Live Tracking ───
     function createGpsIcon() {
         const html = `
-            <div class="gps-arrow-pin">
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <div class="gps-arrow-pin" role="img" aria-label="Current GPS location">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true" focusable="false">
                     <circle cx="14" cy="14" r="13" fill="#3b82f6" stroke="#fff" stroke-width="2"/>
                     <path d="M14 6l4 10-4-3-4 3z" fill="#fff"/>
                 </svg>
-                <div class="gps-pulse-ring"></div>
+                <div class="gps-pulse-ring" aria-hidden="true"></div>
             </div>
         `;
         return L.divIcon({
@@ -329,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // OpenStreetMap high-definition dark tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         map.on('click', onMapClick);
@@ -360,7 +365,8 @@ document.addEventListener('DOMContentLoaded', () => {
             originMarker = L.marker([latlng.lat, latlng.lng], {
                 icon: createPinIcon('A', true),
                 draggable: true,
-                zIndexOffset: 1000
+                zIndexOffset: 1000,
+                alt: 'Origin Pin A'
             }).addTo(map);
 
             originMarker.on('dragend', function(ev) {
@@ -388,7 +394,8 @@ document.addEventListener('DOMContentLoaded', () => {
             destMarker = L.marker([latlng.lat, latlng.lng], {
                 icon: createPinIcon('B', false),
                 draggable: true,
-                zIndexOffset: 1000
+                zIndexOffset: 1000,
+                alt: 'Destination Pin B'
             }).addTo(map);
 
             destMarker.on('dragend', function(ev) {
@@ -410,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sbCollapse) {
         sbCollapse.addEventListener('click', () => {
             sidebar.classList.add('collapsed');
+            sbCollapse.setAttribute('aria-expanded', 'false');
             setTimeout(() => { if (map) map.invalidateSize(); }, 350);
         });
     }
@@ -417,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sbExpand) {
         sbExpand.addEventListener('click', () => {
             sidebar.classList.remove('collapsed');
+            if (sbCollapse) sbCollapse.setAttribute('aria-expanded', 'true');
             setTimeout(() => { if (map) map.invalidateSize(); }, 350);
         });
     }
@@ -424,18 +433,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (driversRange) {
         driversRange.addEventListener('input', () => {
             currentDrivers = parseInt(driversRange.value);
-            if (driversVal) driversVal.textContent = currentDrivers;
+            if (driversVal) {
+                driversVal.textContent = currentDrivers;
+                driversVal.value = currentDrivers;
+            }
+            driversRange.setAttribute('aria-valuenow', currentDrivers);
             if (originLatLng && destLatLng) fetchTurnByTurnRoadRoute();
         });
     }
 
-    // ─── Mode & Strategy Toggles ───
+    // ─── Mode & Strategy Toggles with Full ARIA Radiogroup Support ───
     function setupToggle(btn1, btn2, callback) {
         [btn1, btn2].forEach(btn => {
             if (!btn) return;
             btn.addEventListener('click', () => {
-                btn1.classList.toggle('active', btn === btn1);
-                btn2.classList.toggle('active', btn === btn2);
+                const isBtn1 = (btn === btn1);
+                btn1.classList.toggle('active', isBtn1);
+                btn2.classList.toggle('active', !isBtn1);
+                btn1.setAttribute('aria-checked', isBtn1 ? 'true' : 'false');
+                btn2.setAttribute('aria-checked', !isBtn1 ? 'true' : 'false');
                 callback(btn.dataset.mode || btn.dataset.routing);
             });
         });
@@ -457,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (originLatLng && destLatLng) fetchTurnByTurnRoadRoute();
     });
 
-    // ─── Individual Route Tabs Switcher ───
+    // ─── Individual Route Tabs Switcher with ARIA Tablist Support ───
     if (tabFastest) {
         tabFastest.addEventListener('click', () => {
             activeDisplayedRoute = 'fastest';
@@ -475,8 +491,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateRouteViewTabs() {
-        if (tabFastest) tabFastest.classList.toggle('active', activeDisplayedRoute === 'fastest');
-        if (tabFuel) tabFuel.classList.toggle('active', activeDisplayedRoute === 'fuel');
+        const isFastest = activeDisplayedRoute === 'fastest';
+        if (tabFastest) {
+            tabFastest.classList.toggle('active', isFastest);
+            tabFastest.setAttribute('aria-selected', isFastest ? 'true' : 'false');
+        }
+        if (tabFuel) {
+            tabFuel.classList.toggle('active', !isFastest);
+            tabFuel.setAttribute('aria-selected', !isFastest ? 'true' : 'false');
+        }
     }
 
     // ─── Location Geocoding & Pan ───
@@ -503,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
-                headers: { 'User-Agent': 'SyncroRoadNavigator/7.0' }
+                headers: { 'User-Agent': 'SyncroRoadNavigator/8.0' }
             });
             const geoData = await geoRes.json();
 
@@ -605,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 fuel: {
                     geoJSON: altGeoJSON,
-                    steps: primarySteps, // shared steps for now
+                    steps: primarySteps,
                     stats: {
                         distance_km: altDistKm,
                         time_min: altTimeMin,
@@ -664,7 +687,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDottedRoadRoute() {
         if (!cachedRouteData) return;
 
-        // Clear existing polylines
         if (activeRouteLayer) { map.removeLayer(activeRouteLayer); activeRouteLayer = null; }
         if (activeRouteGlowLayer) { map.removeLayer(activeRouteGlowLayer); activeRouteGlowLayer = null; }
 
@@ -698,12 +720,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }).addTo(map);
 
-        // Ensure markers stay above
         if (originMarker) originMarker.bringToFront();
         if (destMarker) destMarker.bringToFront();
         if (gpsMarker) gpsMarker.bringToFront();
 
-        // Fit map bounds
         if (activeRouteLayer.getBounds().isValid()) {
             map.fitBounds(activeRouteLayer.getBounds(), { padding: [60, 60] });
         }
@@ -776,15 +796,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btnStopNav.addEventListener('click', stopNavigation);
     }
 
-    // ─── Voice Toggle ───
+    // ─── Voice Toggle with ARIA Attributes ───
     if (btnVoiceToggle) {
         btnVoiceToggle.addEventListener('click', () => {
             voiceEnabled = !voiceEnabled;
             btnVoiceToggle.classList.toggle('voice-muted', !voiceEnabled);
+            btnVoiceToggle.setAttribute('aria-pressed', voiceEnabled ? 'true' : 'false');
+            btnVoiceToggle.setAttribute('aria-label', voiceEnabled ? 'Mute voice announcements' : 'Unmute voice announcements');
             btnVoiceToggle.innerHTML = voiceEnabled
-                ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>'
-                : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
-            if (!voiceEnabled && speechSynth.speaking) speechSynth.cancel();
+                ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>'
+                : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+            if (!voiceEnabled && speechSynth && speechSynth.speaking) speechSynth.cancel();
         });
     }
 
@@ -796,32 +818,28 @@ document.addEventListener('DOMContentLoaded', () => {
         cachedSteps = routeObj.steps || [];
         currentStepIndex = 0;
 
-        // Show voice navigation panel
         if (voicePanel) voicePanel.hidden = false;
         hideStartRouteBtn();
 
-        // Lock pin placement during nav
-        setStatus('🧭 Navigation active — follow the voice', 'ok');
+        setStatus('Navigation active — follow the voice instructions', 'ok');
 
-        // Speak the first instruction
         if (cachedSteps.length > 0) {
             updateVoiceUI(cachedSteps[0]);
             speak(cachedSteps[0].instruction);
         }
 
-        // Start GPS tracking
         if ('geolocation' in navigator) {
             navigationWatchId = navigator.geolocation.watchPosition(
                 onGpsUpdate,
                 (err) => {
                     console.warn('GPS error:', err);
-                    setStatus('GPS unavailable — using simulated navigation', 'ok');
+                    setStatus('GPS unavailable — running simulated navigation', 'ok');
                     startSimulatedNavigation();
                 },
                 { enableHighAccuracy: true, timeout: 8000, maximumAge: 2000 }
             );
         } else {
-            setStatus('GPS unavailable — using simulated navigation', 'ok');
+            setStatus('GPS unavailable — running simulated navigation', 'ok');
             startSimulatedNavigation();
         }
     }
@@ -841,7 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
             map.removeLayer(gpsMarker);
             gpsMarker = null;
         }
-        if (speechSynth.speaking) speechSynth.cancel();
+        if (speechSynth && speechSynth.speaking) speechSynth.cancel();
 
         if (voicePanel) voicePanel.hidden = true;
         showStartRouteBtn();
@@ -856,20 +874,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const lng = position.coords.longitude;
         const latlng = L.latLng(lat, lng);
 
-        // Update or create GPS marker
         if (gpsMarker) {
             gpsMarker.setLatLng(latlng);
         } else {
             gpsMarker = L.marker(latlng, {
                 icon: createGpsIcon(),
-                zIndexOffset: 2000
+                zIndexOffset: 2000,
+                alt: 'Your current location'
             }).addTo(map);
         }
 
-        // Re-center map on user
         map.panTo(latlng, { animate: true, duration: 0.5 });
-
-        // Check proximity to next step
         advanceStepIfNear(latlng);
     }
 
@@ -883,7 +898,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const dist = currentPos.distanceTo(stepEnd);
 
             if (dist < 50) {
-                // Arrived at this step, advance
                 currentStepIndex++;
                 if (currentStepIndex < cachedSteps.length) {
                     const nextStep = cachedSteps[currentStepIndex];
@@ -908,7 +922,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVoiceUI(cachedSteps[0]);
         speak(cachedSteps[0].instruction);
 
-        // Walk through steps on a timer based on step duration
         simulatedNavTimer = setInterval(() => {
             currentStepIndex++;
             if (currentStepIndex < cachedSteps.length) {
@@ -916,7 +929,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateVoiceUI(step);
                 speak(step.instruction);
 
-                // Move a simulated GPS marker along the route
                 if (step.geometry && step.geometry.coordinates && step.geometry.coordinates.length > 0) {
                     const midIdx = Math.floor(step.geometry.coordinates.length / 2);
                     const coord = step.geometry.coordinates[midIdx];
@@ -927,7 +939,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         gpsMarker = L.marker(latlng, {
                             icon: createGpsIcon(),
-                            zIndexOffset: 2000
+                            zIndexOffset: 2000,
+                            alt: 'Simulated position'
                         }).addTo(map);
                     }
                     map.panTo(latlng, { animate: true, duration: 0.8 });
@@ -939,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 simulatedNavTimer = null;
                 setTimeout(stopNavigation, 4000);
             }
-        }, 5000); // Advance every 5 seconds for demo
+        }, 5000);
     }
 
     function updateVoiceUI(step) {
@@ -952,19 +965,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function speak(text) {
         if (!voiceEnabled || !speechSynth) return;
-        speechSynth.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.95;
-        utterance.pitch = 1;
-        utterance.volume = 1;
-        // Prefer a natural sounding voice
-        const voices = speechSynth.getVoices();
-        const preferred = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('google'));
-        if (preferred) utterance.voice = preferred;
-        speechSynth.speak(utterance);
+        try {
+            speechSynth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.95;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            const voices = speechSynth.getVoices();
+            const preferred = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('google'));
+            if (preferred) utterance.voice = preferred;
+            speechSynth.speak(utterance);
+        } catch (e) {
+            console.warn('Speech synthesis error:', e);
+        }
     }
 
-    // Preload voices
     if (speechSynth) {
         speechSynth.getVoices();
         speechSynth.onvoiceschanged = () => speechSynth.getVoices();
@@ -977,7 +992,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnGps) {
         btnGps.addEventListener('click', () => {
             if (gpsTrackingActive) {
-                // Stop tracking
                 if (gpsTrackWatchId !== null) {
                     navigator.geolocation.clearWatch(gpsTrackWatchId);
                     gpsTrackWatchId = null;
@@ -988,6 +1002,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 gpsTrackingActive = false;
                 btnGps.classList.remove('gps-active');
+                btnGps.setAttribute('aria-pressed', 'false');
+                btnGps.setAttribute('aria-label', 'Toggle GPS live position tracking');
                 setStatus('GPS tracking stopped', 'ok');
                 return;
             }
@@ -999,6 +1015,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             setStatus('Acquiring GPS position...', 'loading');
             btnGps.classList.add('gps-active');
+            btnGps.setAttribute('aria-pressed', 'true');
+            btnGps.setAttribute('aria-label', 'GPS tracking active - click to stop');
             gpsTrackingActive = true;
 
             gpsTrackWatchId = navigator.geolocation.watchPosition(
@@ -1012,7 +1030,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         gpsMarker = L.marker(latlng, {
                             icon: createGpsIcon(),
-                            zIndexOffset: 2000
+                            zIndexOffset: 2000,
+                            alt: 'Your current location'
                         }).addTo(map);
                     }
 
@@ -1022,6 +1041,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 (err) => {
                     setStatus('GPS position unavailable', 'error');
                     btnGps.classList.remove('gps-active');
+                    btnGps.setAttribute('aria-pressed', 'false');
+                    btnGps.setAttribute('aria-label', 'Toggle GPS live position tracking');
                     gpsTrackingActive = false;
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 3000 }
@@ -1038,6 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (congestionLayer) {
                 map.removeLayer(congestionLayer);
                 congestionLayer = null;
+                btnCongestion.setAttribute('aria-pressed', 'false');
                 setStatus('Heatmap toggled off', 'ok');
                 return;
             }
@@ -1051,13 +1073,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             congestionLayer = L.geoJSON(cachedRouteData.fastest.geoJSON, {
                 style: {
-                    color: '#ef4444',
+                    color: '#f87171',
                     weight: 9,
                     opacity: 0.65,
                     dashArray: '4, 8'
                 }
             }).addTo(map);
 
+            btnCongestion.setAttribute('aria-pressed', 'true');
             setStatus('Congestion heatmap active', 'ok');
         });
     }

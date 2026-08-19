@@ -48,10 +48,20 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollRevealObserver.observe(el);
     });
 
-    // ─── Hero Delays ───
+    // ─── Hero Delays & Initial Hero Counters ───
     document.querySelectorAll('.anim-in').forEach(el => {
         el.style.setProperty('--i', el.dataset.d || '0');
     });
+
+    // Animate hero counters smoothly on load
+    setTimeout(() => {
+        document.querySelectorAll('.hm-val').forEach(c => {
+            if (c.dataset.count && !c.classList.contains('counted')) {
+                c.classList.add('counted');
+                animCount(c);
+            }
+        });
+    }, 200);
 
     // ─── Sticky Header ───
     const header = document.getElementById('site-header');

@@ -13,6 +13,11 @@
 </head>
 <body>
 
+    <!-- ─── SCROLL PROGRESS INDICATOR ─── -->
+    <div class="scroll-progress-container" aria-hidden="true">
+        <div class="scroll-progress-bar" id="scroll-progress"></div>
+    </div>
+
     <!-- ─── NAV ─── -->
     <header id="site-header" class="site-header">
         <nav class="nav">
@@ -81,14 +86,14 @@
     <!-- ─── CRISIS: THE PARADOX ─── -->
     <section id="crisis" class="sec sec-crisis">
         <div class="wrap">
-            <div class="sec-label fade-in">01 — The Crisis</div>
+            <div class="sec-label reveal-scroll">01 — The Crisis</div>
             <div class="crisis-grid">
-                <div class="crisis-text fade-in">
+                <div class="crisis-text reveal-left">
                     <h2>Adding roads makes<br>traffic <em>worse.</em></h2>
                     <p>In 1968, mathematician Dietrich Braess proved that adding a new road to a congested network can <strong>increase</strong> total travel time for every driver. GPS apps each optimize for one person and ignore the system — creating the <strong>Price of Anarchy</strong>.</p>
                     <p>When millions take identical "shortcuts", local bottlenecks trigger city-wide ripple cascades, burning massive amounts of fuel while vehicles sit stationary.</p>
                 </div>
-                <div class="crisis-diagram fade-in">
+                <div class="crisis-diagram reveal-right">
                     <div class="braess-net">
                         <svg viewBox="0 0 380 260" class="braess-svg" aria-label="Braess Paradox diagram">
                             <line x1="60" y1="130" x2="190" y2="40" class="edge"/>
@@ -120,17 +125,17 @@
     <!-- ─── REAL-WORLD DATA: CHENNAI CASE STUDY ─── -->
     <section id="case-study" class="sec sec-case">
         <div class="wrap">
-            <div class="sec-label fade-in">02 — Real-World Impact Study</div>
-            <div class="case-header fade-in">
+            <div class="sec-label reveal-scroll">02 — Real-World Impact Study</div>
+            <div class="case-header reveal-scroll">
                 <h2 class="sec-h2">The Anatomy of Urban Gridlock</h2>
                 <p class="sec-sub">Based on verified transportation data, TomTom Traffic Index, and CSIR-CRRI fuel consumption research across Chennai's active vehicle fleet.</p>
             </div>
 
-            <!-- Baseline Cards -->
+            <!-- Baseline Cards with Spring Hover -->
             <div class="case-cards-grid">
-                <div class="case-card fade-in">
+                <div class="case-card reveal-scroll">
                     <div class="case-card-tag">Active Fleet</div>
-                    <div class="case-metric">3.5 Million</div>
+                    <div class="case-metric" data-count="3.5" data-suffix=" Million">3.5 Million</div>
                     <p class="case-desc">50% active daily fleet out of ~70 Lakh registered vehicles in Chennai.</p>
                     <div class="fleet-breakdown">
                         <div class="fleet-bar">
@@ -146,9 +151,9 @@
                     </div>
                 </div>
 
-                <div class="case-card fade-in">
+                <div class="case-card reveal-scroll">
                     <div class="case-card-tag">TomTom Index</div>
-                    <div class="case-metric">132 Hours / Year</div>
+                    <div class="case-metric" data-count="132" data-suffix=" Hours/Yr">132 Hours/Yr</div>
                     <p class="case-desc">Lost per commuter strictly in rush-hour congestion — averaging <strong>20 minutes (0.33 hrs) of pure stationary idling</strong> per vehicle daily.</p>
                     <div class="idle-rates">
                         <span class="rate-badge">2W: 0.14 L/hr</span>
@@ -157,16 +162,16 @@
                     </div>
                 </div>
 
-                <div class="case-card case-card-highlight fade-in">
+                <div class="case-card case-card-highlight reveal-scroll">
                     <div class="case-card-tag hot-tag">Monthly Financial Toll</div>
-                    <div class="case-metric hot-metric">₹86.6 Crores</div>
+                    <div class="case-metric hot-metric" data-count="86.6" data-prefix="₹" data-suffix=" Cr">₹86.6 Cr</div>
                     <div class="case-submetric">≈ $10.4 Million USD / Month</div>
                     <p class="case-desc">Burned by Chennai commuters while completely stationary at traffic signals and chokepoints (assuming ₹100/L average fuel price).</p>
                 </div>
             </div>
 
-            <!-- Data Table -->
-            <div class="case-table-wrap fade-in">
+            <!-- Data Table with Spring Reveal -->
+            <div class="case-table-wrap reveal-scale">
                 <div class="table-title">Monthly Fuel Wastage & Emissions Breakdown (30-Day Cycle)</div>
                 <div class="table-responsive">
                     <table class="case-table">
@@ -209,7 +214,7 @@
             </div>
 
             <!-- Environmental Hazard Callout -->
-            <div class="env-box fade-in">
+            <div class="env-box reveal-scroll">
                 <div class="env-header">
                     <div class="env-icon">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -240,10 +245,10 @@
     <!-- ─── HOW IT WORKS ─── -->
     <section id="how" class="sec sec-how">
         <div class="wrap">
-            <div class="sec-label fade-in">03 — How It Works</div>
-            <h2 class="sec-h2 fade-in">Route the system, not just the self.</h2>
+            <div class="sec-label reveal-scroll">03 — How It Works</div>
+            <h2 class="sec-h2 reveal-scroll">Route the system, not just the self.</h2>
             <div class="how-steps">
-                <div class="step fade-in">
+                <div class="step reveal-scroll">
                     <div class="step-num">01</div>
                     <div class="step-body">
                         <h3>Pick Any Location</h3>
@@ -251,7 +256,7 @@
                     </div>
                 </div>
                 <div class="step-connector"><div class="conn-line"></div></div>
-                <div class="step fade-in">
+                <div class="step reveal-scroll">
                     <div class="step-num">02</div>
                     <div class="step-body">
                         <h3>Click Origin & Destination</h3>
@@ -259,7 +264,7 @@
                     </div>
                 </div>
                 <div class="step-connector"><div class="conn-line"></div></div>
-                <div class="step fade-in">
+                <div class="step reveal-scroll">
                     <div class="step-num">03</div>
                     <div class="step-body">
                         <h3>Equilibrium & Congestion</h3>
@@ -340,7 +345,7 @@
                 <div class="sb-instr-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
                 </div>
-                <p id="instr-text">Click <strong>Load</strong> to import roads, then click map for <strong>Origin (A)</strong> and <strong>Destination (B)</strong>.</p>
+                <p id="instr-text">Road network active! <strong>Click anywhere on the map</strong> to drop Origin Pin (A).</p>
             </div>
 
             <!-- Results Panel -->
@@ -432,6 +437,6 @@
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

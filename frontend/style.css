@@ -711,6 +711,21 @@ body::after {
 .leaflet-control-attribution { background:rgba(12,12,14,.8) !important; color:var(--text3) !important; font-size:10px !important; }
 .leaflet-control-attribution a { color:var(--text3) !important; }
 
+/* ─── Dotted Polyline Styles ─── */
+.route-dotted-polyline {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: flowDotted 20s linear infinite;
+}
+@keyframes flowDotted {
+    to { stroke-dashoffset: -1000; }
+}
+
+.route-glow-polyline {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* Custom Pin Markers */
 .syncro-pin {
     display: flex;
